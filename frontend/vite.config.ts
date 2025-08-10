@@ -14,7 +14,8 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
-    minify: 'terser',
+    minify: 'esbuild', // 使用 esbuild 而不是 terser，更快且兼容性更好
+    target: 'es2020',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -23,7 +24,9 @@ export default defineConfig({
           motion: ['framer-motion']
         }
       }
-    }
+    },
+    // 确保构建结果兼容 Cloudflare Pages
+    assetsInlineLimit: 4096
   },
   server: {
     port: 3000,
@@ -31,5 +34,7 @@ export default defineConfig({
   },
   preview: {
     port: 4173
-  }
+  },
+  // 针对 Cloudflare Pages 的优化
+  base: './'
 }) 
