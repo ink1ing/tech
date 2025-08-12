@@ -18,13 +18,13 @@ try {
   console.log('⚙️ 创建安全构建配置...');
   const safeConfig = `
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import react from '@vitejs/plugin-react-swc'
 
 export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'dist',
-    minify: false,
+    minify: 'esbuild',
     target: 'es2020',
     sourcemap: false,
     rollupOptions: {
@@ -65,4 +65,4 @@ export default defineConfig({
   }
   
   process.exit(1);
-} 
+}
