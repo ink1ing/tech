@@ -2,35 +2,64 @@ import React, { useState } from 'react';
 import { User, Calendar, Globe, MessageSquare, Sun, Moon, Twitter, Github, Mail, Lock } from 'lucide-react';
 
 export default function PersonalInfoPage() {
-  const [isDark, setIsDark] = useState(false);
-  const [activeSection, setActiveSection] = useState('关于我');
+  const [isDark, setIsDark] = useState(true);
+  const [activeSection, setActiveSection] = useState('Navigation');
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [language, setLanguage] = useState<'zh' | 'en'>('zh');
+  const [language, setLanguage] = useState<'zh' | 'en'>('en');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // 密码保护的正确密码（在实际应用中应该从环境变量或后端获取）
   const correctPassword1 = 'bqu37rgf';
   const correctPassword2 = 'yg9sn7jr';
 
-  const menuItems = language === 'zh' ? [
-    '导航站',
-    '关于我',
-    '我的作品', 
-    '我的经验',
-    '我的思考',
-    '其他东西',
-    '私有访问1',
-    '私有访问2'
-  ] : [
-    'Navigation',
-    'About Me',
-    'My Works', 
-    'My Experience',
-    'My Thoughts',
-    'Other Stuff',
-    'Private Access 1',
-    'Private Access 2'
-  ];
+  // 检查是否为手机竖屏
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // 设置默认侧边栏状态
+  React.useEffect(() => {
+    setIsSidebarOpen(!isMobile);
+  }, [isMobile]);
+
+  // 监听窗口大小变化
+  React.useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      // 在桌面视图中始终打开侧边栏
+      if (!mobile) {
+        setIsSidebarOpen(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // 根据语言设置菜单项
+  const getMenuItems = () => {
+    return language === 'zh' ? [
+      '导航站',
+      '关于我',
+      '我的作品', 
+      '我的经验',
+      '我的思考',
+      '其他东西',
+      '私有访问1',
+      '私有访问2'
+    ] : [
+      'Navigation',
+      'About Me',
+      'My Works', 
+      'My Experience',
+      'My Thoughts',
+      'Other Stuff',
+      'Private Access 1',
+      'Private Access 2'
+    ];
+  };
+
+  const menuItems = getMenuItems();
 
   const personalInfo = {
     name: 'INK',
@@ -481,51 +510,42 @@ export default function PersonalInfoPage() {
         </div>
       );
     } else if (isProtectedPage && isAuthenticated) {
+      const handleCopyLink = () => {
+        navigator.clipboard.writeText('https://liangxin.xyz/api/v1/liangxin?OwO=e3b7da973fe06931eb2c76298109e5a5');
+        alert(language === 'zh' ? '链接已复制到剪贴板' : 'Link copied to clipboard');
+      };
+
       return (
         <div>
-          <div className="flex justify-between items-center mb-6">
-            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className={`text-3xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {activeSection}
-            </h1>
-            <button
-              onClick={() => {
-                setIsAuthenticated(false);
-                setPassword('');
-              }}
-              className={`px-4 py-2 rounded-lg font-bold ${
+          </h1>
+          <div className="grid grid-cols-1 gap-6">
+            <div 
+              onClick={handleCopyLink}
+              className={`block border rounded-lg p-6 transition-all duration-200 hover:shadow-lg cursor-pointer ${
                 isDark
-                  ? 'bg-gray-700 text-white hover:bg-gray-600'
-                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                  ? 'bg-gray-800 border-gray-700 hover:bg-gray-750'
+                  : 'bg-white bg-opacity-30 backdrop-blur-sm border-gray-200 hover:bg-opacity-50'
               }`}
             >
-              {language === 'zh' ? '退出登录' : 'Logout'}
-            </button>
-          </div>
-          <div className={`p-8 rounded-lg ${
-            isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          } border`}>
-            <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {language === 'zh' ? '私有内容区域' : 'Private Content Area'}
-            </h2>
-            <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-              {language === 'zh' 
-                ? '这是受密码保护的私有内容区域。您可以在这里放置任何您希望保护的私人信息。' 
-                : 'This is a password-protected private content area. You can place any private information you wish to protect here.'}
-            </p>
-            <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-              {language === 'zh' 
-                ? '只有输入正确密码的用户才能访问此内容。' 
-                : 'Only users who enter the correct password can access this content.'}
-            </p>
-            <div className="mt-6 p-4 rounded-lg bg-blue-500 bg-opacity-10 border border-blue-500 border-opacity-30">
-              <h3 className={`font-bold mb-2 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-                {language === 'zh' ? '私有信息示例' : 'Private Information Example'}
-              </h3>
-              <p className={`${isDark ? 'text-blue-200' : 'text-blue-600'}`}>
-                {language === 'zh' 
-                  ? '这里可以放置您的私有信息，如个人笔记、财务信息、私人项目等。' 
-                  : 'Private information can be placed here, such as personal notes, financial information, private projects, etc.'}
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {language === 'zh' ? '订阅链接1' : 'Subscription Link 1'}
+                  </h2>
+                  <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                    {language === 'zh' ? '点击即可复制' : 'Click to copy'}
+                  </p>
+                </div>
+                <div className={`px-4 py-2 rounded-lg font-bold ${
+                  isDark
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-blue-500 text-white'
+                }`}>
+                  {language === 'zh' ? '复制' : 'Copy'}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -556,12 +576,29 @@ export default function PersonalInfoPage() {
     {!isDark && (
       <div className="fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm -z-10"></div>
     )}
-      {/* Left Sidebar */}
-      <div className={`w-64 border-r p-6 transition-colors duration-200 ${
-        isDark 
-          ? 'bg-gray-800 border-gray-700' 
-          : 'bg-white bg-opacity-30 backdrop-blur-sm border-gray-200'
-      }`}>
+    
+    {/* 汉堡菜单按钮 (仅在移动端显示) */}
+    {isMobile && (
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className={`fixed top-4 left-4 z-20 p-2 rounded-md ${
+          isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
+        } shadow-md`}
+      >
+        {isSidebarOpen ? '✕' : '☰'}
+      </button>
+    )}
+    
+    {/* Left Sidebar */}
+    <div className={`
+      ${isMobile ? 'absolute z-10 h-full' : 'relative'}
+      transition-all duration-300 ease-in-out
+      ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-64 -translate-x-full'}
+      ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white bg-opacity-30 backdrop-blur-sm border-gray-200'}
+      border-r p-6
+    `}>
+      {isSidebarOpen && (
+        <>
         {/* Profile Section */}
         <div className="flex items-center mb-8">
           <div>
@@ -635,6 +672,10 @@ export default function PersonalInfoPage() {
                   setIsAuthenticated(false);
                   setPassword('');
                 }
+                // 在移动端点击菜单项后关闭侧边栏
+                if (isMobile) {
+                  setIsSidebarOpen(false);
+                }
               }}
               className={`px-3 py-2 rounded font-bold cursor-pointer transition-colors ${
                 activeSection === item
@@ -650,14 +691,16 @@ export default function PersonalInfoPage() {
             </div>
           ))}
         </nav>
-      </div>
+      </>
+      )}
+    </div>
 
-      {/* Main Content */}
-      <div className="flex-1 p-8">
-        <div className="max-w-4xl mx-auto">
-          {renderContent()}
-        </div>
+    {/* Main Content */}
+    <div className={`flex-1 p-8 transition-all duration-300 ${isMobile ? 'pt-16' : ''}`}>
+      <div className="max-w-4xl mx-auto">
+        {renderContent()}
       </div>
     </div>
+  </div>
   );
 }
