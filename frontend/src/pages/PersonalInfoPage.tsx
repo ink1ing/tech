@@ -246,6 +246,11 @@ export default function PersonalInfoPage() {
       title: 'Chrome Download',
       url: 'https://www.google.com/chrome/',
       description: '下载最多人用的浏览器'
+    },
+    { 
+      title: 'Z-Library',
+      url: 'https://z-library.ec/',
+      description: '最大&完全免费的图书馆'
     }
   ] : [
     { 
@@ -292,6 +297,11 @@ export default function PersonalInfoPage() {
       title: 'Chrome Download',
       url: 'https://www.google.com/chrome/',
       description: 'Download the most used browser'
+    },
+    { 
+      title: 'Z-Library',
+      url: 'https://z-library.ec/',
+      description: 'The largest & completely free library'
     }
   ];
 
