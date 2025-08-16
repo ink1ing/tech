@@ -94,6 +94,11 @@ export default function PersonalInfoPage() {
       title: '御三家提示词工程指南精粹', 
       url: 'https://jasper-goldenrod-aa1.notion.site/2100a9798195803eab93d38e9b62cee0?pvs=74',
       description: '提示词工程指南精粹'
+    },
+    { 
+      title: '即开即用的LLM', 
+      url: 'https://grok-3-fast-with-live-search.onrender.com/',
+      description: '功能简单，持续开发'
     }
   ] : [
     { 
@@ -110,6 +115,11 @@ export default function PersonalInfoPage() {
       title: 'Top Three Prompt Engineering Guide Essentials', 
       url: 'https://jasper-goldenrod-aa1.notion.site/2100a9798195803eab93d38e9b62cee0?pvs=74',
       description: 'Prompt engineering guide essentials'
+    },
+    { 
+      title: 'Ready-to-Use LLM', 
+      url: 'https://grok-3-fast-with-live-search.onrender.com/',
+      description: 'Simple functionality, continuous development'
     }
   ];
 
