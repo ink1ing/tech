@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import PersonalInfoPage from './pages/PersonalInfoPage'
+import PersonalInfoPageSecure from './pages/PersonalInfoPageSecure'
 
 function App() {
   return (
     <div className="min-h-screen">
-      <PersonalInfoPage />
+      <PersonalInfoPageSecure />
     </div>
   )
 }
