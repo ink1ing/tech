@@ -2,14 +2,8 @@ name = "ink-auth-api"
 main = "auth-worker.js"
 compatibility_date = "2023-10-30"
 
-# Workers 路由配置
-routes = [
-  { pattern = "your-domain.com/api/*", zone_name = "your-domain.com" }
-]
-
 # 环境变量配置 (敏感信息需在 Cloudflare 后台设置)
 [vars]
-# 这些是非敏感的公开配置
 ENVIRONMENT = "production"
 
 # 敏感环境变量需要通过 wrangler secret 命令或 Cloudflare Dashboard 设置:

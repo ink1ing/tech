@@ -1,7 +1,7 @@
 // 前端 API 服务
 // 处理与 Cloudflare Workers 后端的通信
 
-const API_BASE_URL = 'https://ink-auth-api.your-subdomain.workers.dev'; // 替换为你的实际 Workers 域名
+const API_BASE_URL = 'https://ink-auth-api.ink1ing.workers.dev'; // Cloudflare Workers API 端点
 
 class AuthService {
   constructor() {
