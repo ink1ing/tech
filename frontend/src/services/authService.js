@@ -1,15 +1,8 @@
 // 前端 API 服务
 // 处理与 Cloudflare Workers 后端的通信
 
-// 临时使用你可能实际部署的域名，或者fallback策略
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://ink-auth-api.ink1ing.workers.dev' 
-  : 'https://ink-auth-api.ink1ing.workers.dev';
-
-// 如果Workers域名不对，请替换为实际的Workers URL
-// 常见的Workers域名格式：
-// - https://your-worker-name.your-account.workers.dev
-// - https://your-worker-name.your-subdomain.workers.dev
+// 使用实际部署的Workers URL
+const API_BASE_URL = 'https://ink-auth-api.huinkling-3bc.workers.dev';
 
 class AuthService {
   constructor() {
