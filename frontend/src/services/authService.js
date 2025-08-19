@@ -1,7 +1,15 @@
 // 前端 API 服务
 // 处理与 Cloudflare Workers 后端的通信
 
-const API_BASE_URL = 'https://ink-auth-api.ink1ing.workers.dev'; // Cloudflare Workers API 端点
+// 临时使用你可能实际部署的域名，或者fallback策略
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://ink-auth-api.ink1ing.workers.dev' 
+  : 'https://ink-auth-api.ink1ing.workers.dev';
+
+// 如果Workers域名不对，请替换为实际的Workers URL
+// 常见的Workers域名格式：
+// - https://your-worker-name.your-account.workers.dev
+// - https://your-worker-name.your-subdomain.workers.dev
 
 class AuthService {
   constructor() {
@@ -22,6 +30,8 @@ class AuthService {
   // 登录验证
   async login(password, section) {
     try {
+      console.log(`🔍 尝试连接 API: ${API_BASE_URL}/api/auth/login`);
+      
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
@@ -30,7 +40,10 @@ class AuthService {
         body: JSON.stringify({ password, section })
       });
 
+      console.log(`📡 API 响应状态: ${response.status}`);
+
       const data = await response.json();
+      console.log('📦 API 响应数据:', data);
 
       if (response.ok && data.success) {
         this.token = data.token;
@@ -46,8 +59,17 @@ class AuthService {
         return { success: false, error: data.error || '登录失败' };
       }
     } catch (error) {
-      console.error('Login error:', error);
-      return { success: false, error: '网络错误，请重试' };
+      console.error('❌ Login error:', error);
+      
+      // 提供更详细的错误信息
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        return { 
+          success: false, 
+          error: `无法连接到服务器 (${API_BASE_URL})。请检查Workers是否正确部署。详细错误: ${error.message}` 
+        };
+      }
+      
+      return { success: false, error: `网络错误: ${error.message}` };
     }
   }
 
