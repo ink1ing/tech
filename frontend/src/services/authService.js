@@ -39,13 +39,18 @@ class AuthService {
       console.log('📦 API 响应数据:', data);
 
       if (response.ok && data.success) {
+        console.log('✅ 登录成功，保存token...');
         this.token = data.token;
         this.tokenExpiry = Math.floor(Date.now() / 1000) + data.expiresIn;
         
+        console.log('💾 保存到localStorage...');
         // 保存到 localStorage
         localStorage.setItem('auth_token', this.token);
         localStorage.setItem('auth_token_expiry', this.tokenExpiry.toString());
         localStorage.setItem('auth_section', section);
+        
+        console.log('🔑 Token已保存:', this.token ? this.token.substring(0, 20) + '...' : 'null');
+        console.log('⏰ 过期时间:', this.tokenExpiry);
         
         return { success: true };
       } else {
@@ -98,11 +103,19 @@ class AuthService {
 
   // 获取受保护内容
   async getProtectedContent() {
+    console.log('🔐 检查token有效性...');
+    console.log('Token:', this.token ? '存在' : '不存在');
+    console.log('Token过期时间:', this.tokenExpiry);
+    console.log('当前时间:', Math.floor(Date.now() / 1000));
+    
     if (!this.isTokenValid()) {
       throw new Error('未授权访问');
     }
 
     try {
+      console.log('🚀 发送受保护内容请求...');
+      console.log('Authorization header:', `Bearer ${this.token ? this.token.substring(0, 20) + '...' : 'null'}`);
+      
       const response = await fetch(`${API_BASE_URL}/api/protected/content`, {
         method: 'GET',
         headers: {
@@ -111,15 +124,20 @@ class AuthService {
         }
       });
 
+      console.log('🔍 受保护内容响应状态:', response.status);
+
       if (!response.ok) {
         if (response.status === 401) {
+          console.error('❌ 401错误 - token可能无效或过期');
           this.clearAuth();
           throw new Error('授权已过期，请重新登录');
         }
         throw new Error('获取内容失败');
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('✅ 受保护内容获取成功:', data);
+      return data;
     } catch (error) {
       console.error('Get protected content error:', error);
       throw error;
