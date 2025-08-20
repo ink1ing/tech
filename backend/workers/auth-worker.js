@@ -1,17 +1,23 @@
 // Cloudflare Workers 认证API
 // 部署到 Cloudflare Workers 用于处理用户认证
 
-// JWT 帮助函数
+// 简化版JWT实现 - 使用标准的base64编码
 async function generateJWT(payload, secret) {
+  console.log('🔨 生成JWT, payload:', payload);
+  
   const header = {
     alg: 'HS256',
     typ: 'JWT'
   };
   
-  const encodedHeader = base64urlEscape(btoa(JSON.stringify(header)));
-  const encodedPayload = base64urlEscape(btoa(JSON.stringify(payload)));
-  const unsignedToken = `${encodedHeader}.${encodedPayload}`;
+  // 使用标准base64编码，然后转换为base64url
+  const headerB64 = btoa(JSON.stringify(header)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  const payloadB64 = btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   
+  const unsignedToken = `${headerB64}.${payloadB64}`;
+  console.log('📝 未签名token:', unsignedToken);
+  
+  // 生成签名
   const key = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(secret),
@@ -26,9 +32,17 @@ async function generateJWT(payload, secret) {
     new TextEncoder().encode(unsignedToken)
   );
   
-  const encodedSignature = base64urlEscape(btoa(String.fromCharCode(...new Uint8Array(signature))));
+  // 转换签名为base64url
+  const signatureArray = new Uint8Array(signature);
+  const signatureB64 = btoa(String.fromCharCode.apply(null, signatureArray))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
   
-  return `${unsignedToken}.${encodedSignature}`;
+  const finalToken = `${unsignedToken}.${signatureB64}`;
+  console.log('✅ 生成的JWT:', finalToken.substring(0, 50) + '...');
+  
+  return finalToken;
 }
 
 async function verifyJWT(token, secret) {
@@ -48,40 +62,47 @@ async function verifyJWT(token, secret) {
       return null;
     }
     
-    const [encodedHeader, encodedPayload, encodedSignature] = parts;
-    console.log('📦 JWT Parts:', { 
-      header: encodedHeader.substring(0, 20) + '...',
-      payload: encodedPayload.substring(0, 20) + '...',
-      signature: encodedSignature.substring(0, 20) + '...'
-    });
+    const [headerB64, payloadB64, signatureB64] = parts;
+    console.log('📦 JWT Parts验证开始');
+    
+    // 重新生成签名进行比较
+    const unsignedToken = `${headerB64}.${payloadB64}`;
     
     const key = await crypto.subtle.importKey(
       'raw',
       new TextEncoder().encode(secret),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
-      ['verify']
+      ['sign']
     );
-    console.log('🔑 Key导入成功');
     
-    const unsignedToken = `${encodedHeader}.${encodedPayload}`;
-    const signature = Uint8Array.from(atob(base64urlUnescape(encodedSignature)), c => c.charCodeAt(0));
-    
-    const isValid = await crypto.subtle.verify(
+    const expectedSignature = await crypto.subtle.sign(
       'HMAC',
       key,
-      signature,
       new TextEncoder().encode(unsignedToken)
     );
     
-    console.log('🔍 签名验证结果:', isValid);
+    // 转换为base64url格式
+    const expectedSignatureArray = new Uint8Array(expectedSignature);
+    const expectedSignatureB64 = btoa(String.fromCharCode.apply(null, expectedSignatureArray))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
     
-    if (!isValid) {
-      console.log('❌ 签名验证失败');
+    console.log('🔍 签名对比:', {
+      received: signatureB64.substring(0, 20) + '...',
+      expected: expectedSignatureB64.substring(0, 20) + '...',
+      match: signatureB64 === expectedSignatureB64
+    });
+    
+    if (signatureB64 !== expectedSignatureB64) {
+      console.log('❌ 签名不匹配');
       return null;
     }
     
-    const payload = JSON.parse(atob(base64urlUnescape(encodedPayload)));
+    // 解析payload
+    const payloadStr = atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'));
+    const payload = JSON.parse(payloadStr);
     console.log('📦 解析后的payload:', payload);
     
     // 检查过期时间
@@ -95,8 +116,10 @@ async function verifyJWT(token, secret) {
     
     console.log('✅ JWT验证成功');
     return payload;
+    
   } catch (error) {
-    console.error('❌ JWT验证异常:', error);
+    console.error('❌ JWT验证异常:', error.message);
+    console.error('Stack:', error.stack);
     return null;
   }
 }
