@@ -46,6 +46,13 @@ const navigationLinks = [
     description_en: 'First AI IDE'
   },
   { 
+    title: 'Apple ID Free',
+    title_en: 'Apple ID Free',
+    url: 'https://idshare001.me/',
+    description: '免费好用的ID',
+    description_en: 'Free and useful Apple IDs'
+  },
+  { 
     title: 'iCloud',
     title_en: 'iCloud',
     url: 'https://icloud.com',
