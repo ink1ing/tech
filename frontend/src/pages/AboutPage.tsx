@@ -1,5 +1,6 @@
 import React from 'react';
 import { Twitter, Github, Mail } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 import PageContainer from '../components/PageContainer';
 
 const socialLinks = [
@@ -9,8 +10,7 @@ const socialLinks = [
 ];
 
 export default function AboutPage() {
-  const language: 'zh' | 'en' = 'en';
-  const isDark = true;
+  const { language, isDark } = useAppContext();
 
   return (
     <PageContainer title="关于我" titleEn="About Me" language={language} isDark={isDark}>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAppContext } from '../context/AppContext';
 import PageContainer from '../components/PageContainer';
 
 const navigationLinks = [
@@ -75,8 +76,7 @@ const navigationLinks = [
 ];
 
 export default function NavigationPage() {
-  const language: 'zh' | 'en' = 'en'; // This will be passed from context later
-  const isDark = true; // This will be passed from context later
+  const { language, isDark } = useAppContext();
 
   return (
     <PageContainer title="导航站" titleEn="Navigation" language={language} isDark={isDark}>

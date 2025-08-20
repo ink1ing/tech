@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAppContext } from '../context/AppContext';
 import PageContainer from '../components/PageContainer';
 
 const works = [
@@ -33,8 +34,7 @@ const works = [
 ];
 
 export default function WorksPage() {
-  const language: 'zh' | 'en' = 'en';
-  const isDark = true;
+  const { language, isDark } = useAppContext();
 
   return (
     <PageContainer title="我的作品" titleEn="My Works" language={language} isDark={isDark}>

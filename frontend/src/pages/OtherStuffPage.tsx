@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAppContext } from '../context/AppContext';
 import PageContainer from '../components/PageContainer';
 
 const affiliateLinks = [
@@ -33,8 +34,7 @@ const affiliateLinks = [
 ];
 
 export default function OtherStuffPage() {
-  const language: 'zh' | 'en' = 'en';
-  const isDark = true;
+  const { language, isDark } = useAppContext();
 
   return (
     <PageContainer title="其他东西" titleEn="Other Stuff" language={language} isDark={isDark}>

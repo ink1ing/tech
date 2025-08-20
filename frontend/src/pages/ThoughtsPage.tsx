@@ -1,9 +1,9 @@
 import React from 'react';
+import { useAppContext } from '../context/AppContext';
 import PageContainer from '../components/PageContainer';
 
 export default function ThoughtsPage() {
-  const language: 'zh' | 'en' = 'en';
-  const isDark = true;
+  const { language, isDark } = useAppContext();
 
   return (
     <PageContainer title="我的思考" titleEn="My Thoughts" language={language} isDark={isDark}>
