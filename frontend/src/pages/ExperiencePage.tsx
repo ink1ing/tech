@@ -16,13 +16,6 @@ const experiences = [
     url: 'https://jasper-goldenrod-aa1.notion.site/1f60a9798195800585bede410d27d932?source=copy_link',
     description: 'Apple Watch使用技巧和攻略',
     description_en: 'Apple Watch usage tips and guide'
-  },
-  { 
-    title: 'Claude最强镜像', 
-    title_en: 'Claude Best Mirror',
-    url: 'https://demo.fuclaude.com',
-    description: '需要sessionkey访问',
-    description_en: 'Requires sessionkey access'
   }
 ];
 

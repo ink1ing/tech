@@ -18,6 +18,13 @@ const navigationLinks = [
     description_en: 'Most used by Devs'
   },
   { 
+    title: 'Claude最强镜像', 
+    title_en: 'Claude Best Mirror',
+    url: 'https://demo.fuclaude.com',
+    description: '需要sessionkey访问',
+    description_en: 'Requires sessionkey access'
+  },
+  { 
     title: 'Gemini',
     title_en: 'Gemini',
     url: 'https://ai.google.dev',
