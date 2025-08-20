@@ -33,7 +33,27 @@ async function generateJWT(payload, secret) {
 
 async function verifyJWT(token, secret) {
   try {
-    const [encodedHeader, encodedPayload, encodedSignature] = token.split('.');
+    console.log('🔐 开始验证JWT...');
+    console.log('Token:', token ? token.substring(0, 50) + '...' : 'null');
+    console.log('Secret存在:', secret ? '是' : '否');
+    
+    if (!token || !secret) {
+      console.log('❌ Token或Secret缺失');
+      return null;
+    }
+    
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      console.log('❌ JWT格式错误, parts:', parts.length);
+      return null;
+    }
+    
+    const [encodedHeader, encodedPayload, encodedSignature] = parts;
+    console.log('📦 JWT Parts:', { 
+      header: encodedHeader.substring(0, 20) + '...',
+      payload: encodedPayload.substring(0, 20) + '...',
+      signature: encodedSignature.substring(0, 20) + '...'
+    });
     
     const key = await crypto.subtle.importKey(
       'raw',
@@ -42,6 +62,7 @@ async function verifyJWT(token, secret) {
       false,
       ['verify']
     );
+    console.log('🔑 Key导入成功');
     
     const unsignedToken = `${encodedHeader}.${encodedPayload}`;
     const signature = Uint8Array.from(atob(base64urlUnescape(encodedSignature)), c => c.charCodeAt(0));
@@ -53,19 +74,29 @@ async function verifyJWT(token, secret) {
       new TextEncoder().encode(unsignedToken)
     );
     
+    console.log('🔍 签名验证结果:', isValid);
+    
     if (!isValid) {
+      console.log('❌ 签名验证失败');
       return null;
     }
     
     const payload = JSON.parse(atob(base64urlUnescape(encodedPayload)));
+    console.log('📦 解析后的payload:', payload);
     
     // 检查过期时间
-    if (payload.exp && Date.now() / 1000 > payload.exp) {
+    const now = Date.now() / 1000;
+    console.log('⏰ 时间检查:', { now, exp: payload.exp, isExpired: payload.exp && now > payload.exp });
+    
+    if (payload.exp && now > payload.exp) {
+      console.log('❌ Token已过期');
       return null;
     }
     
+    console.log('✅ JWT验证成功');
     return payload;
   } catch (error) {
+    console.error('❌ JWT验证异常:', error);
     return null;
   }
 }
@@ -225,9 +256,12 @@ async function handleVerify(request, env, origin) {
 // 处理受保护内容请求
 async function handleProtectedContent(request, env, origin) {
   try {
+    console.log('🔍 处理受保护内容请求...');
     const authHeader = request.headers.get('Authorization');
+    console.log('Authorization header:', authHeader ? 'Present' : 'Missing');
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('❌ Missing or invalid Authorization header');
       return new Response(JSON.stringify({ error: 'Missing token' }), {
         status: 401,
         headers: {
@@ -238,9 +272,14 @@ async function handleProtectedContent(request, env, origin) {
     }
     
     const token = authHeader.substring(7);
+    console.log('🔑 Extracted token:', token.substring(0, 20) + '...');
+    console.log('🔐 Verifying JWT...');
+    
     const payload = await verifyJWT(token, env.JWT_SECRET);
+    console.log('📦 JWT payload:', payload);
     
     if (!payload) {
+      console.log('❌ Invalid JWT token');
       return new Response(JSON.stringify({ error: 'Invalid token' }), {
         status: 401,
         headers: {
@@ -249,6 +288,8 @@ async function handleProtectedContent(request, env, origin) {
         }
       });
     }
+    
+    console.log('✅ JWT valid, section:', payload.section);
     
     // 根据section返回相应的受保护内容
     let protectedData = {};
@@ -279,6 +320,8 @@ async function handleProtectedContent(request, env, origin) {
       };
     }
     
+    console.log('📤 Returning protected data:', protectedData);
+    
     return new Response(JSON.stringify(protectedData), {
       headers: {
         'Content-Type': 'application/json',
@@ -287,6 +330,7 @@ async function handleProtectedContent(request, env, origin) {
     });
     
   } catch (error) {
+    console.error('❌ Server error:', error);
     return new Response(JSON.stringify({ error: 'Server error' }), {
       status: 500,
       headers: {
