@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Sun, Moon } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 import authService from '../services/authService';
 
 interface LayoutProps {
@@ -8,10 +9,8 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const [isDark, setIsDark] = useState(true);
-  const [language, setLanguage] = useState<'zh' | 'en'>('en');
+  const { isDark, setIsDark, language, setLanguage, isAuthenticated, setIsAuthenticated } = useAppContext();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
   const navigate = useNavigate();
@@ -35,15 +34,6 @@ export default function Layout({ children }: LayoutProps) {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  // 检查认证状态
-  useEffect(() => {
-    const checkAuth = async () => {
-      const result = await authService.verifyToken();
-      setIsAuthenticated(result.valid);
-    };
-    checkAuth();
-  }, [location.pathname]);
 
   const personalInfo = {
     name: 'INK',
@@ -79,7 +69,7 @@ export default function Layout({ children }: LayoutProps) {
       setIsSidebarOpen(false);
     }
     
-    // 如果切换到非私有页面，清除认证状态
+    // 如果切换到非私有页面，清除所有认证状态
     if (!path.startsWith('/private')) {
       authService.clearAuth();
       setIsAuthenticated(false);

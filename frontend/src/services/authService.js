@@ -160,7 +160,9 @@ class AuthService {
 
   // 获取当前登录的区域
   getCurrentSection() {
-    return localStorage.getItem('auth_section');
+    const section = localStorage.getItem('auth_section');
+    console.log('🔍 当前section:', section);
+    return section;
   }
 }
 

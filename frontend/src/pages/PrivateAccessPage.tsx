@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Lock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAppContext } from '../context/AppContext';
 import authService from '../services/authService';
 
 interface PrivateAccessPageProps {
@@ -13,31 +14,64 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
   const [protectedContent, setProtectedContent] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [language] = useState<'zh' | 'en'>('en'); // Will be from context later
-  const [isDark] = useState(true); // Will be from context later
+  const [contentLoading, setContentLoading] = useState(false);
   
+  const { language, isDark } = useAppContext();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // 检查是否已经认证
+  // 检查当前页面的认证状态
   useEffect(() => {
-    const checkAuth = async () => {
-      const result = await authService.verifyToken();
-      if (result.valid && result.section === section) {
-        setIsAuthenticated(true);
-        await loadProtectedContent();
+    const checkAuthForCurrentSection = async () => {
+      try {
+        const result = await authService.verifyToken();
+        const currentSection = authService.getCurrentSection();
+        
+        // 只有当前section匹配时才认为已认证
+        const isValidAuth = result.valid && currentSection === section;
+        
+        console.log('🔍 认证检查:', {
+          tokenValid: result.valid,
+          currentSection,
+          requiredSection: section,
+          isValidAuth
+        });
+        
+        setIsAuthenticated(isValidAuth);
+        
+        if (isValidAuth) {
+          await loadProtectedContent();
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setIsAuthenticated(false);
       }
     };
-    checkAuth();
-  }, [section]);
+    
+    // 每次进入页面都重新检查认证状态
+    checkAuthForCurrentSection();
+  }, [section, location.pathname]);
 
   // 加载受保护内容
   const loadProtectedContent = async () => {
+    setContentLoading(true);
+    setError('');
+    
     try {
+      console.log('🔄 加载受保护内容...');
       const content = await authService.getProtectedContent();
+      console.log('✅ 内容加载成功:', content);
       setProtectedContent(content);
     } catch (error) {
-      console.error('Failed to load protected content:', error);
-      setError(language === 'zh' ? '加载内容失败' : 'Failed to load content');
+      console.error('❌ 内容加载失败:', error);
+      setError(language === 'zh' ? '加载内容失败，请重试' : 'Failed to load content, please try again');
+      // 如果是认证错误，清除认证状态
+      if (error.message.includes('授权') || error.message.includes('Unauthorized')) {
+        setIsAuthenticated(false);
+        authService.clearAuth();
+      }
+    } finally {
+      setContentLoading(false);
     }
   };
 
@@ -48,9 +82,11 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
     setError('');
 
     try {
+      console.log('🔐 尝试登录...', section);
       const result = await authService.login(password, section);
       
       if (result.success) {
+        console.log('✅ 登录成功');
         setIsAuthenticated(true);
         setPassword('');
         await loadProtectedContent();
@@ -132,11 +168,38 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
 
   // 认证成功后显示受保护内容
   const renderProtectedContent = () => {
-    if (!protectedContent || !protectedContent.links) {
+    if (contentLoading) {
+      return (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            {language === 'zh' ? '加载中...' : 'Loading...'}
+          </p>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="text-center py-8">
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
+            {error}
+          </div>
+          <button
+            onClick={loadProtectedContent}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
+          >
+            {language === 'zh' ? '重试' : 'Retry'}
+          </button>
+        </div>
+      );
+    }
+
+    if (!protectedContent || !protectedContent.links || protectedContent.links.length === 0) {
       return (
         <div className="text-center py-8">
           <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            {language === 'zh' ? '加载中...' : 'Loading...'}
+            {language === 'zh' ? '暂无内容' : 'No content available'}
           </p>
         </div>
       );
@@ -189,7 +252,7 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
         <div className={`px-3 py-1 rounded-full text-sm ${
           isDark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-800'
         }`}>
-          {language === 'zh' ? '已认证' : 'Authenticated'}
+          ✅ {language === 'zh' ? '已认证' : 'Authenticated'}
         </div>
       </div>
       
