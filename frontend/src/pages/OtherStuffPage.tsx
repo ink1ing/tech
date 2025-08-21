@@ -3,6 +3,27 @@ import { useAppContext } from '../context/AppContext';
 import PageContainer from '../components/PageContainer';
 
 const affiliateLinks = [
+  {
+    title: 'PPLX PRO 一个月试用',
+    title_en: 'PPLX Pro 1-Month Trial',
+    url: 'https://perplexity.ai/pro?referral_code=BD8D23V3',
+    description: '免费获得 1 个月试用资格（$20 额度）',
+    description_en: 'Get 1 month free ($20 credit)'
+  },
+  {
+    title: 'Gemini Pro 一个月试用',
+    title_en: 'Gemini Pro 1-Month Trial',
+    url: 'https://g.co/g1referral/M18L9AFX',
+    description: '免费获得 1 个月试用资格（$80 额度）',
+    description_en: 'Get 1 month free ($80 credit)'
+  },
+  {
+    title: '500万 Tokens 旗舰 LLM 访问',
+    title_en: '5,000,000 Tokens Multi‑LLM Access',
+    url: 'https://wisdom-gate.juheapi.com?i=4n2K',
+    description: '免费获得各家旗舰 LLM 访问权（合计 500 万 Tokens）',
+    description_en: 'Free access to flagship LLMs (total 5M tokens)'
+  },
   { 
     title: 'Binance返佣', 
     title_en: 'Binance Referral',
