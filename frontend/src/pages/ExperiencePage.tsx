@@ -37,10 +37,10 @@ export default function ExperiencePage() {
                 : 'bg-transparent border-gray-300 hover:bg-black/5 active:scale-95'
             }`}
           >
-            <h2 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-[#1a1a66] text-shadow-sm text-surface'}`}>
+            <h2 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {language === 'zh' ? exp.title : exp.title_en}
             </h2>
-            <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-[#333333] text-shadow-xs text-surface'}`}>
+            <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               {language === 'zh' ? exp.description : exp.description_en}
             </p>
           </a>

@@ -14,14 +14,14 @@ export default function AboutPage() {
 
   return (
     <PageContainer title="关于我" titleEn="About Me" language={language} isDark={isDark}>
-      <p className={`font-bold mb-8 ${isDark ? 'text-gray-300' : 'text-[#333333] text-shadow-xs text-surface'}`}>
+      <p className={`font-bold mb-8 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
         {language === 'zh' 
           ? '每一个所谓起舞的日子都是对世俗的拥护' 
           : 'Each day we choose to dance deliberately is a day we embrace worldly conformity.'}
       </p>
 
       <div>
-        <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-[#1a1a66] text-shadow-sm text-surface'}`}>
+        <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
           {language === 'zh' ? '联系方式' : 'Contact Information'}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -40,7 +40,7 @@ export default function AboutPage() {
                 }`}
               >
                 <Icon className="w-5 h-5 text-blue-500 mr-3" />
-                <span className={`font-bold ${isDark ? 'text-white' : 'text-[#1a1a66] text-shadow-sm'}`}>
+                <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {link.name}
                 </span>
               </a>
