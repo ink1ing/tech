@@ -85,24 +85,16 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className={`min-h-screen flex transition-colors duration-200 relative ${
       isDark ? 'bg-gray-900' : ''
-    }`}>
+    }`}
+    style={isDark ? {} : {
+      backgroundImage: 'url(https://persistent.oaistatic.com/burrito-nux/640.webp)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed'
+    }}>
       {!isDark && (
-        <>
-          {/* 背景图层：全屏覆盖并模糊 */}
-          <div
-            className="fixed inset-0 -z-20 pointer-events-none"
-            style={{
-              backgroundImage: 'url(https://persistent.oaistatic.com/burrito-nux/640.webp)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundAttachment: 'fixed',
-              filter: 'blur(14px)',
-              transform: 'scale(1.06)'
-            }}
-          />
-          {/* 亮度覆盖层：提高可读性 */}
-          <div className="fixed inset-0 -z-10 bg-white/55" />
-        </>
+        // 覆盖层：对背景图做模糊并加一层浅色以提升可读性
+        <div className="fixed inset-0 -z-10 bg-white/55 backdrop-blur-[12px]" />
       )}
       
       {/* 汉堡菜单按钮 (仅在移动端显示) */}
