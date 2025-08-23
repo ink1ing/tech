@@ -113,7 +113,7 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
   if (!isAuthenticated) {
     return (
       <div>
-        <h1 className={`text-3xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+        <h1 className={`text-3xl font-bold mb-6 ${isDark ? 'text-white' : 'text-black'}`}>
           {getPageTitle()}
         </h1>
         
@@ -121,10 +121,10 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
           <div className="flex items-center justify-center mb-6">
             <Lock className="w-8 h-8 text-blue-500" />
           </div>
-          <h2 className={`text-2xl font-bold text-center mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <h2 className={`text-2xl font-bold text-center mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
             {language === 'zh' ? '私有访问区域' : 'Private Access Area'}
           </h2>
-          <p className={`text-center mb-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          <p className={`text-center mb-8 ${isDark ? 'text-gray-400' : 'text-black'}`}>
             {language === 'zh' ? '此区域需要密码才能访问' : 'This area requires a password to access'}
           </p>
           
@@ -136,7 +136,7 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
           
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>
-              <label className={`block text-sm font-bold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label className={`block text-sm font-bold mb-2 ${isDark ? 'text-gray-300' : 'text-black'}`}>
                 {language === 'zh' ? '访问密码' : 'Access Password'}
               </label>
               <input
@@ -147,7 +147,7 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
                 className={`w-full px-4 py-2 rounded-lg border ${
                   isDark 
                     ? 'bg-gray-800 border-gray-700 text-white' 
-                    : 'bg-white border-gray-300 text-gray-900'
+                    : 'bg-white border-gray-300 text-black'
                 } focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50`}
                 placeholder={language === 'zh' ? '请输入访问密码' : 'Please enter access password'}
                 required

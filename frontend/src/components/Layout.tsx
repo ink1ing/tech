@@ -102,7 +102,7 @@ export default function Layout({ children }: LayoutProps) {
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className={`fixed top-4 left-4 z-20 p-2 rounded-md ${
-            isDark ? 'bg-gray-800 text-white' : 'bg-transparent border border-gray-300 text-gray-800'
+            isDark ? 'bg-gray-800 text-white' : 'glass-light text-black'
           } shadow-md`}
         >
           {isSidebarOpen ? '✕' : '☰'}
@@ -123,10 +123,10 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex items-center mb-8">
               <div>
                 <h2 className={`text-xl font-bold ${
-                  isDark ? 'text-white' : 'text-gray-900'
+                  isDark ? 'text-white' : 'text-black'
                 }`}>{personalInfo.name}</h2>
                 <p className={`text-sm font-bold ${
-                  isDark ? 'text-gray-400' : 'text-gray-600'
+                  isDark ? 'text-gray-400' : 'text-black'
                 }`}>{personalInfo.email}</p>
               </div>
             </div>
@@ -136,28 +136,28 @@ export default function Layout({ children }: LayoutProps) {
               <div className="flex space-x-2">
                 <button
                   onClick={() => setLanguage('zh')}
-                  className={`px-3 py-1 rounded-full text-sm font-bold border transition-all ${
+                  className={`px-3 py-1 rounded-full text-sm font-bold transition-all ${
                     language === 'zh'
                       ? isDark
-                        ? 'bg-transparent text-blue-300 border-blue-800'
-                        : 'bg-transparent text-blue-600 border-blue-300'
+                        ? 'bg-transparent text-blue-300 border border-blue-800'
+                        : 'glass-light text-black'
                       : isDark
-                        ? 'text-gray-400 border-transparent hover:bg-white/5'
-                        : 'text-gray-500 border-transparent hover:bg-black/5'
+                        ? 'text-gray-400 border border-transparent hover:bg-white/5'
+                        : 'glass-light text-black'
                   }`}
                 >
                   中文
                 </button>
                 <button
                   onClick={() => setLanguage('en')}
-                  className={`px-3 py-1 rounded-full text-sm font-bold border transition-all ${
+                  className={`px-3 py-1 rounded-full text-sm font-bold transition-all ${
                     language === 'en'
                       ? isDark
-                        ? 'bg-transparent text-blue-300 border-blue-800'
-                        : 'bg-transparent text-blue-600 border-blue-300'
+                        ? 'bg-transparent text-blue-300 border border-blue-800'
+                        : 'glass-light text-black'
                       : isDark
-                        ? 'text-gray-400 border-transparent hover:bg-white/5'
-                        : 'text-gray-500 border-transparent hover:bg-black/5'
+                        ? 'text-gray-400 border border-transparent hover:bg-white/5'
+                        : 'glass-light text-black'
                   }`}
                 >
                   EN
@@ -189,10 +189,10 @@ export default function Layout({ children }: LayoutProps) {
                     location.pathname === item.path
                       ? isDark 
                         ? 'text-blue-300 border border-blue-800 bg-transparent' 
-                        : 'text-blue-600 border border-blue-300 bg-transparent'
+                        : 'glass-light text-black'
                       : isDark
                         ? 'text-gray-300 hover:bg-white/5'
-                        : 'text-gray-700 hover:bg-black/5'
+                        : 'text-black hover:bg-white/50'
                   } active:scale-95`}
                 >
                   {item.label}
@@ -205,10 +205,10 @@ export default function Layout({ children }: LayoutProps) {
               <div className="mt-6 pt-6 border-t border-gray-600">
                 <button
                   onClick={handleLogout}
-                  className={`w-full px-3 py-2 rounded font-bold transition-all border ${
+                  className={`w-full px-3 py-2 rounded font-bold transition-all ${
                     isDark
-                      ? 'text-red-300 border-red-800 hover:bg-white/5'
-                      : 'text-red-600 border-red-300 hover:bg-black/5'
+                      ? 'text-red-300 border border-red-800 hover:bg-white/5'
+                      : 'glass-light text-black'
                   }`}
                 >
                   {language === 'zh' ? '登出' : 'Logout'}
