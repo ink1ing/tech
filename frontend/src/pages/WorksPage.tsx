@@ -51,10 +51,10 @@ export default function WorksPage() {
                 : 'bg-transparent border-gray-300 hover:bg-black/5 active:scale-95'
             }`}
           >
-            <h2 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <h2 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-[#1a1a66] text-shadow-sm text-surface'}`}>
               {language === 'zh' ? work.title : work.title_en}
             </h2>
-            <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-[#333333] text-shadow-xs text-surface'}`}>
               {language === 'zh' ? work.description : work.description_en}
             </p>
           </a>
