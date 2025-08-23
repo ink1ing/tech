@@ -19,7 +19,7 @@ export default function PageContainer({
   
   return (
     <div>
-      <h1 className={`text-3xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+      <h1 className={`text-3xl font-bold mb-6 ${isDark ? 'text-white' : 'text-black'}`}>
         {displayTitle}
       </h1>
       {children}

@@ -45,16 +45,16 @@ export default function WorksPage() {
             href={work.url}
             target="_blank"
             rel="noopener noreferrer"
-            className={`block border rounded-lg p-6 transition-all duration-200 hover:shadow-lg ${
+            className={`block rounded-lg p-6 transition-all duration-200 hover:shadow-lg ${
               isDark
-                ? 'bg-gray-800 border-gray-700 hover:bg-gray-750'
-                : 'bg-transparent border-gray-300 hover:bg-black/5 active:scale-95'
+                ? 'bg-gray-800 border border-gray-700 hover:bg-gray-750'
+                : 'glass-light active:scale-95'
             }`}
           >
-            <h2 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <h2 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
               {language === 'zh' ? work.title : work.title_en}
             </h2>
-            <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-black'}`}>
               {language === 'zh' ? work.description : work.description_en}
             </p>
           </a>

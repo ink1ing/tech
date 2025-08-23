@@ -159,7 +159,7 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
               className={`w-full font-bold py-2 px-4 rounded-lg transition-all duration-200 ${
                 isDark
                   ? 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 text-white'
-                  : 'bg-transparent border border-blue-300 text-blue-600 hover:bg-black/5 active:scale-95 disabled:opacity-50'
+                  : 'glass-light text-black active:scale-95 disabled:opacity-50'
               }`}
             >
               {loading ? (language === 'zh' ? '验证中...' : 'Verifying...') : (language === 'zh' ? '进入' : 'Enter')}
@@ -194,7 +194,7 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
             className={`font-bold py-2 px-4 rounded-lg transition-all duration-200 ${
               isDark
                 ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                : 'bg-transparent border border-blue-300 text-blue-600 hover:bg-black/5 active:scale-95'
+                : 'glass-light text-black active:scale-95'
             }`}
           >
             {language === 'zh' ? '重试' : 'Retry'}
@@ -223,10 +223,10 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
         <div 
           key={index}
           onClick={handleCopyLink}
-          className={`block border rounded-lg p-6 transition-all duration-200 hover:shadow-lg cursor-pointer ${
+          className={`block rounded-lg p-6 transition-all duration-200 hover:shadow-lg cursor-pointer ${
             isDark
-              ? 'bg-gray-800 border-gray-700 hover:bg-gray-750'
-              : 'bg-transparent border-gray-300 hover:bg-black/5 active:scale-95'
+              ? 'bg-gray-800 border border-gray-700 hover:bg-gray-750'
+              : 'glass-light active:scale-95'
           }`}
         >
           <div className="flex items-center justify-between">
@@ -241,7 +241,7 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
             <div className={`px-4 py-2 rounded-lg font-bold ${
               isDark
                 ? 'bg-blue-600 text-white'
-                : 'bg-transparent border border-blue-300 text-blue-600'
+                : 'glass-light text-black'
             }`}>
               {language === 'zh' ? '复制' : 'Copy'}
             </div>
