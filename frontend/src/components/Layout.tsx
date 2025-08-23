@@ -101,7 +101,7 @@ export default function Layout({ children }: LayoutProps) {
       {isMobile && (
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className={`fixed top-4 left-4 z-20 p-2 rounded-md ${
+          className={`fixed top-4 left-4 z-20 p-2 rounded-md active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-blue-400/40 ${
             isDark ? 'bg-gray-800 text-white' : 'glass-light text-black'
           } shadow-md`}
         >

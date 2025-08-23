@@ -45,10 +45,10 @@ export default function WorksPage() {
             href={work.url}
             target="_blank"
             rel="noopener noreferrer"
-            className={`block rounded-lg p-6 transition-all duration-200 hover:shadow-lg ${
+            className={`block rounded-lg p-6 transition-all duration-200 hover:shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-blue-400/40 active:scale-95 ${
               isDark
-                ? 'bg-gray-800 border border-gray-700 hover:bg-gray-750'
-                : 'glass-light active:scale-95'
+                ? 'bg-gray-800 border border-gray-700 hover:bg-gray-700'
+                : 'glass-light'
             }`}
           >
             <h2 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>

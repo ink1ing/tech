@@ -33,10 +33,10 @@ export default function AboutPage() {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex items-center p-4 rounded-lg transition-all duration-200 ${
+                className={`flex items-center p-4 rounded-lg transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-blue-400/40 active:scale-95 ${
                   isDark
-                    ? 'bg-gray-800 border border-gray-700 hover:bg-gray-750'
-                    : 'glass-light active:scale-95'
+                    ? 'bg-gray-800 border border-gray-700 hover:bg-gray-700'
+                    : 'glass-light'
                 }`}
               >
                 <Icon className="w-5 h-5 text-blue-500 mr-3" />

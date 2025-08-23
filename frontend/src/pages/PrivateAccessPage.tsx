@@ -156,7 +156,7 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full font-bold py-2 px-4 rounded-lg transition-all duration-200 ${
+              className={`w-full font-bold py-2 px-4 rounded-lg transition-all duration-200 active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-blue-400/40 ${
                 isDark
                   ? 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 text-white'
                   : 'glass-light text-black active:scale-95 disabled:opacity-50'
@@ -191,7 +191,7 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
           </div>
           <button
             onClick={loadProtectedContent}
-            className={`font-bold py-2 px-4 rounded-lg transition-all duration-200 ${
+            className={`font-bold py-2 px-4 rounded-lg transition-all duration-200 active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-blue-400/40 ${
               isDark
                 ? 'bg-blue-600 hover:bg-blue-500 text-white'
                 : 'glass-light text-black active:scale-95'
@@ -223,9 +223,9 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
         <div 
           key={index}
           onClick={handleCopyLink}
-          className={`block rounded-lg p-6 transition-all duration-200 hover:shadow-lg cursor-pointer ${
+          className={`block rounded-lg p-6 transition-all duration-200 hover:shadow-lg cursor-pointer active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-blue-400/40 ${
             isDark
-              ? 'bg-gray-800 border border-gray-700 hover:bg-gray-750'
+              ? 'bg-gray-800 border border-gray-700 hover:bg-gray-700'
               : 'glass-light active:scale-95'
           }`}
         >
