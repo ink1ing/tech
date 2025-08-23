@@ -85,15 +85,24 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className={`min-h-screen flex transition-colors duration-200 relative ${
       isDark ? 'bg-gray-900' : ''
-    }`}
-    style={isDark ? {} : { 
-      backgroundImage: 'url(https://persistent.oaistatic.com/burrito-nux/640.webp)',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundAttachment: 'fixed'
-    }}>
+    }`}>
       {!isDark && (
-        <div className="fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm -z-10"></div>
+        <>
+          {/* 背景图层：全屏覆盖并模糊 */}
+          <div
+            className="fixed inset-0 -z-20 pointer-events-none"
+            style={{
+              backgroundImage: 'url(https://persistent.oaistatic.com/burrito-nux/640.webp)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundAttachment: 'fixed',
+              filter: 'blur(14px)',
+              transform: 'scale(1.06)'
+            }}
+          />
+          {/* 亮度覆盖层：提高可读性 */}
+          <div className="fixed inset-0 -z-10 bg-white/55" />
+        </>
       )}
       
       {/* 汉堡菜单按钮 (仅在移动端显示) */}
@@ -101,7 +110,7 @@ export default function Layout({ children }: LayoutProps) {
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className={`fixed top-4 left-4 z-20 p-2 rounded-md ${
-            isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
+            isDark ? 'bg-gray-800 text-white' : 'bg-transparent border border-gray-300 text-gray-800'
           } shadow-md`}
         >
           {isSidebarOpen ? '✕' : '☰'}
@@ -113,7 +122,7 @@ export default function Layout({ children }: LayoutProps) {
         ${isMobile ? 'absolute z-10 h-full' : 'relative'}
         transition-all duration-300 ease-in-out
         ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-64 -translate-x-full'}
-        ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white bg-opacity-30 backdrop-blur-sm border-gray-200'}
+        ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-transparent border-gray-200'}
         border-r p-6
       `}>
         {isSidebarOpen && (
@@ -135,28 +144,28 @@ export default function Layout({ children }: LayoutProps) {
               <div className="flex space-x-2">
                 <button
                   onClick={() => setLanguage('zh')}
-                  className={`px-3 py-1 rounded-full text-sm font-bold ${
+                  className={`px-3 py-1 rounded-full text-sm font-bold border transition-all ${
                     language === 'zh'
                       ? isDark
-                        ? 'bg-blue-900 text-blue-300'
-                        : 'bg-blue-50 text-blue-600'
+                        ? 'bg-transparent text-blue-300 border-blue-800'
+                        : 'bg-transparent text-blue-600 border-blue-300'
                       : isDark
-                        ? 'text-gray-400 hover:bg-gray-700'
-                        : 'text-gray-500 hover:bg-gray-200'
+                        ? 'text-gray-400 border-transparent hover:bg-white/5'
+                        : 'text-gray-500 border-transparent hover:bg-black/5'
                   }`}
                 >
                   中文
                 </button>
                 <button
                   onClick={() => setLanguage('en')}
-                  className={`px-3 py-1 rounded-full text-sm font-bold ${
+                  className={`px-3 py-1 rounded-full text-sm font-bold border transition-all ${
                     language === 'en'
                       ? isDark
-                        ? 'bg-blue-900 text-blue-300'
-                        : 'bg-blue-50 text-blue-600'
+                        ? 'bg-transparent text-blue-300 border-blue-800'
+                        : 'bg-transparent text-blue-600 border-blue-300'
                       : isDark
-                        ? 'text-gray-400 hover:bg-gray-700'
-                        : 'text-gray-500 hover:bg-gray-200'
+                        ? 'text-gray-400 border-transparent hover:bg-white/5'
+                        : 'text-gray-500 border-transparent hover:bg-black/5'
                   }`}
                 >
                   EN
@@ -184,15 +193,15 @@ export default function Layout({ children }: LayoutProps) {
                 <div
                   key={item.path}
                   onClick={() => handleNavigation(item.path)}
-                  className={`px-3 py-2 rounded font-bold cursor-pointer transition-colors ${
+                  className={`px-3 py-2 rounded font-bold cursor-pointer transition-all select-none ${
                     location.pathname === item.path
                       ? isDark 
-                        ? 'bg-blue-900 text-blue-300 border border-blue-800' 
-                        : 'bg-blue-50 text-blue-600 border border-blue-200'
+                        ? 'text-blue-300 border border-blue-800 bg-transparent' 
+                        : 'text-blue-600 border border-blue-300 bg-transparent'
                       : isDark
-                        ? 'text-gray-300 hover:bg-gray-700'
-                        : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                        ? 'text-gray-300 hover:bg-white/5'
+                        : 'text-gray-700 hover:bg-black/5'
+                  } active:scale-95`}
                 >
                   {item.label}
                 </div>
@@ -204,10 +213,10 @@ export default function Layout({ children }: LayoutProps) {
               <div className="mt-6 pt-6 border-t border-gray-600">
                 <button
                   onClick={handleLogout}
-                  className={`w-full px-3 py-2 rounded font-bold transition-colors ${
+                  className={`w-full px-3 py-2 rounded font-bold transition-all border ${
                     isDark
-                      ? 'bg-red-800 text-red-300 hover:bg-red-700'
-                      : 'bg-red-100 text-red-600 hover:bg-red-200'
+                      ? 'text-red-300 border-red-800 hover:bg-white/5'
+                      : 'text-red-600 border-red-300 hover:bg-black/5'
                   }`}
                 >
                   {language === 'zh' ? '登出' : 'Logout'}

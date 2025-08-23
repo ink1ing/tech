@@ -156,7 +156,11 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
+              className={`w-full font-bold py-2 px-4 rounded-lg transition-all duration-200 ${
+                isDark
+                  ? 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 text-white'
+                  : 'bg-transparent border border-blue-300 text-blue-600 hover:bg-black/5 active:scale-95 disabled:opacity-50'
+              }`}
             >
               {loading ? (language === 'zh' ? '验证中...' : 'Verifying...') : (language === 'zh' ? '进入' : 'Enter')}
             </button>
@@ -187,7 +191,11 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
           </div>
           <button
             onClick={loadProtectedContent}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
+            className={`font-bold py-2 px-4 rounded-lg transition-all duration-200 ${
+              isDark
+                ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                : 'bg-transparent border border-blue-300 text-blue-600 hover:bg-black/5 active:scale-95'
+            }`}
           >
             {language === 'zh' ? '重试' : 'Retry'}
           </button>
@@ -218,7 +226,7 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
           className={`block border rounded-lg p-6 transition-all duration-200 hover:shadow-lg cursor-pointer ${
             isDark
               ? 'bg-gray-800 border-gray-700 hover:bg-gray-750'
-              : 'bg-white bg-opacity-30 backdrop-blur-sm border-gray-200 hover:bg-opacity-50'
+              : 'bg-transparent border-gray-300 hover:bg-black/5 active:scale-95'
           }`}
         >
           <div className="flex items-center justify-between">
@@ -233,7 +241,7 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
             <div className={`px-4 py-2 rounded-lg font-bold ${
               isDark
                 ? 'bg-blue-600 text-white'
-                : 'bg-blue-500 text-white'
+                : 'bg-transparent border border-blue-300 text-blue-600'
             }`}>
               {language === 'zh' ? '复制' : 'Copy'}
             </div>

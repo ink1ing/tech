@@ -34,7 +34,7 @@ export default function ExperiencePage() {
             className={`block border rounded-lg p-6 transition-all duration-200 hover:shadow-lg ${
               isDark
                 ? 'bg-gray-800 border-gray-700 hover:bg-gray-750'
-                : 'bg-white bg-opacity-30 backdrop-blur-sm border-gray-200 hover:bg-opacity-50'
+                : 'bg-transparent border-gray-300 hover:bg-black/5 active:scale-95'
             }`}
           >
             <h2 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
