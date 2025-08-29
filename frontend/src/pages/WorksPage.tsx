@@ -4,6 +4,13 @@ import PageContainer from '../components/PageContainer';
 
 const works = [
   { 
+    title: 'Highest', 
+    title_en: 'Highest',
+    url: 'https://ink1ing.tech/highest',
+    description: 'Free LLM all in 1',
+    description_en: 'Free LLM all in 1'
+  },
+  { 
     title: '大模型能力对比', 
     title_en: 'Large Model Capability Comparison',
     url: 'https://ink1ing.github.io/ai-model-comparison/',
