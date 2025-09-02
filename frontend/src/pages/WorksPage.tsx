@@ -11,6 +11,13 @@ const works = [
     description_en: 'Free LLM all in 1'
   },
   { 
+    title: 'Laziest brow', 
+    title_en: 'Laziest brow',
+    url: 'https://github.com/ink1ing/laziest-brow',
+    description: '超级谷歌导航栏（插件）',
+    description_en: 'Super Google Navigation Bar (Extension)'
+  },
+  { 
     title: '大模型能力对比', 
     title_en: 'Large Model Capability Comparison',
     url: 'https://ink1ing.github.io/ai-model-comparison/',
