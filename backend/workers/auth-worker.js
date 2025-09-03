@@ -333,11 +333,25 @@ async function handleProtectedContent(request, env, origin) {
       protectedData = {
         links: [
           {
-            title: '订阅链接2',
-            title_en: 'Subscription Link 2', 
-            url: env.PROTECTED_LINK_2 || 'https://example.com/link2',
-            description: '高级订阅链接',
-            description_en: 'Premium subscription link'
+            title: '速度a 质量a 可选性b 稳定性b all',
+            title_en: 'Speed A Quality A Options B Stability B All', 
+            url: 'https://liangxin.xyz/api/v1/liangxin?OwO=82c5e463214390893b93077965bcdeb5',
+            description: '点击即可复制',
+            description_en: 'Click to copy'
+          },
+          {
+            title: '速度b质量b可选性a稳定性a iOS',
+            title_en: 'Speed B Quality B Options A Stability A iOS', 
+            url: 'https://fba02.fbsubcn01.cc:2096/flydsubal/z8uwnnb67kkmn8ip?list=shadowrocket&extend=1',
+            description: '点击即可复制',
+            description_en: 'Click to copy'
+          },
+          {
+            title: '速度b质量a可选性a稳定性a Clash',
+            title_en: 'Speed B Quality A Options A Stability A Clash', 
+            url: 'https://fba01.fbsubcn01.cc:2096/flydsubal/27craqh8tw3miczq?clash=1&extend=1',
+            description: '点击即可复制',
+            description_en: 'Click to copy'
           }
         ]
       };
