@@ -25,6 +25,13 @@ const navigationLinks = [
     description_en: 'Requires sessionkey access'
   },
   { 
+    title: 'Claude Code', 
+    title_en: 'Claude Code',
+    url: 'https://www.anthropic.com/claude-code',
+    description: '最先进，最昂贵',
+    description_en: 'Most advanced, Most expensive'
+  },
+  { 
     title: 'Gemini',
     title_en: 'Gemini',
     url: 'https://ai.google.dev',
