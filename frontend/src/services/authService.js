@@ -1,8 +1,8 @@
 // 前端 API 服务
 // 处理与 Cloudflare Workers 后端的通信
 
-// 使用实际部署的Workers URL
-const API_BASE_URL = 'https://ink-auth-api.huinkling-3bc.workers.dev';
+// 使用自定义域名的API端点
+const API_BASE_URL = 'https://auth.ink1ing.tech';
 
 class AuthService {
   constructor() {

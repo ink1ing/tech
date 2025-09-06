@@ -2,6 +2,11 @@ name = "ink-auth-api"
 main = "auth-worker.js"
 compatibility_date = "2023-10-30"
 
+# 自定义域名路由配置
+routes = [
+  { pattern = "auth.ink1ing.tech/*", custom_domain = true }
+]
+
 # 环境变量配置 (敏感信息需在 Cloudflare 后台设置)
 [vars]
 ENVIRONMENT = "production"
