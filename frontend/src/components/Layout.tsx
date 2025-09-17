@@ -37,7 +37,7 @@ export default function Layout({ children }: LayoutProps) {
 
   const personalInfo = {
     name: 'INK',
-    email: 'huinkling@yahoo.com'
+    email: 'ink@ink1ing.tech'
   };
 
   // 根据语言设置菜单项

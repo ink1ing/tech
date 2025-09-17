@@ -6,7 +6,7 @@ import PageContainer from '../components/PageContainer';
 const socialLinks = [
   { name: 'X', url: 'https://x.com/Ink_thesilent', icon: Twitter },
   { name: 'Github', url: 'https://github.com/ink1ing', icon: Github },
-  { name: 'Mail', url: 'mailto:huinkling@yahoo.com', icon: Mail }
+  { name: 'Mail', url: 'mailto:ink@ink1ing.tech', icon: Mail }
 ];
 
 export default function AboutPage() {
