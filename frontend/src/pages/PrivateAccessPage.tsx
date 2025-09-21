@@ -61,7 +61,26 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
       console.log('🔄 加载受保护内容...');
       const content = await authService.getProtectedContent();
       console.log('✅ 内容加载成功:', content);
-      setProtectedContent(content);
+
+      let updatedContent = content;
+      if (section === 'private1') {
+        const links = Array.isArray(content?.links) ? [...content.links] : [];
+        const hasPortalLink = links.some((link: any) => link?.url === 'https://ink1ing.tech/portal');
+
+        if (!hasPortalLink) {
+          links.push({
+            title: '文件门户',
+            title_en: 'File Portal',
+            url: 'https://ink1ing.tech/portal',
+            description: '直接上传文件',
+            description_en: 'Just upload files'
+          });
+        }
+
+        updatedContent = { ...content, links };
+      }
+
+      setProtectedContent(updatedContent);
     } catch (error) {
       console.error('❌ 内容加载失败:', error);
       setError(language === 'zh' ? '加载内容失败，请重试' : 'Failed to load content, please try again');
