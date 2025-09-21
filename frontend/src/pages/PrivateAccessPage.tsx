@@ -65,10 +65,22 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
       let updatedContent = content;
       if (section === 'private1') {
         const links = Array.isArray(content?.links) ? [...content.links] : [];
-        const hasPortalLink = links.some((link: any) => link?.url === 'https://ink1ing.tech/portal');
+        const sanitizedLinks = links.filter((link: any) => {
+          if (!link) {
+            return true;
+          }
+          if (link.title === '订阅链接1' || link.title_en === 'Subscription Link 1') {
+            return false;
+          }
+          if (typeof link.url === 'string' && link.url.includes('liangxin.xyz')) {
+            return false;
+          }
+          return true;
+        });
+        const hasPortalLink = sanitizedLinks.some((link: any) => link?.url === 'https://ink1ing.tech/portal');
 
         if (!hasPortalLink) {
-          links.push({
+          sanitizedLinks.push({
             title: '文件门户',
             title_en: 'File Portal',
             url: 'https://ink1ing.tech/portal',
@@ -77,7 +89,7 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
           });
         }
 
-        updatedContent = { ...content, links };
+        updatedContent = { ...content, links: sanitizedLinks };
       }
 
       setProtectedContent(updatedContent);

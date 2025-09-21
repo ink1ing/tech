@@ -321,13 +321,6 @@ async function handleProtectedContent(request, env, origin) {
       protectedData = {
         links: [
           {
-            title: '订阅链接1',
-            title_en: 'Subscription Link 1',
-            url: env.PROTECTED_LINK_1 || 'https://liangxin.xyz/api/v1/liangxin?OwO=e3b7da973fe06931eb2c76298109e5a5',
-            description: '点击即可复制',
-            description_en: 'Click to copy'
-          },
-          {
             title: '文件门户',
             title_en: 'File Portal',
             url: 'https://ink1ing.tech/portal',
