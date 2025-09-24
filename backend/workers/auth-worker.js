@@ -335,7 +335,7 @@ async function handleProtectedContent(request, env, origin) {
           {
             title: '速度a 质量a 可选性b 稳定性b all',
             title_en: 'Speed A Quality A Options B Stability B All', 
-            url: 'https://liangxin.xyz/api/v1/liangxin?OwO=82c5e463214390893b93077965bcdeb5',
+            url: 'https://liangxin.xyz/api/v1/liangxin?OwO=33e4e48d2dcf6f989bb5ed31743e20ea',
             description: '点击即可复制',
             description_en: 'Click to copy'
           },
