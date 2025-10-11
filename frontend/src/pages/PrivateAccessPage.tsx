@@ -249,9 +249,9 @@ export default function PrivateAccessPage({ section }: PrivateAccessPageProps) {
       {
         title: '优先稳定性 (推荐)',
         links: [
-          { label: '复制🐱', url: 'https://liangxin.xyz/api/v1/liangxin?OwO=33e4e48d2dcf6f989bb5ed31743e20ea&name=良心云' },
-          { label: '复制🚀', url: 'https://liangxin.xyz/api/v1/liangxin?OwO=33e4e48d2dcf6f989bb5ed31743e20ea' },
-          { label: '复制备选', url: 'https://liangxin.xyz/api/v1/liangxin?OwO=33e4e48d2dcf6f989bb5ed31743e20ea&name=良心云' }
+          { label: '复制🐱', url: 'https://liangxin.xyz/api/v1/liangxin?OwO=82c5e463214390893b93077965bcdeb5&name=良心云' },
+          { label: '复制🚀', url: 'https://liangxin.xyz/api/v1/liangxin?OwO=82c5e463214390893b93077965bcdeb5' },
+          { label: '复制备选', url: 'https://liangxin.xyz/api/v1/liangxin?OwO=82c5e463214390893b93077965bcdeb5' }
         ]
       },
       {
