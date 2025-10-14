@@ -30,6 +30,13 @@ const experiences = [
     url: 'https://x.com/Ink_thesilent/status/1974185447074222229',
     description: '包含主流AI和套餐情况',
     description_en: 'Includes mainstream AI and package information'
+  },
+  {
+    title: '自己建一个Claude镜像',
+    title_en: 'Build Your Own Claude Mirror',
+    url: 'https://jasper-goldenrod-aa1.notion.site/claude-2870a979819580169eb6fab313d6a667?source=copy_link',
+    description: '基于Fuclaude项目和Cloudflare免费计划',
+    description_en: 'Based on Fuclaude project and Cloudflare free plan'
   }
 ];
 
