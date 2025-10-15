@@ -38,12 +38,19 @@ const works = [
     description: '提示词工程指南精粹',
     description_en: 'Prompt engineering guide essentials'
   },
-  { 
-    title: '即开即用的LLM', 
+  {
+    title: '即开即用的LLM',
     title_en: 'Ready-to-Use LLM',
     url: 'https://grok-3-fast-with-live-search.onrender.com/',
     description: '功能简单，持续开发',
     description_en: 'Simple functionality, continuous development'
+  },
+  {
+    title: 'Telegram小秘书',
+    title_en: 'Telegram Assistant Bot',
+    url: 'https://t.me/agent_daily_20251007_bot',
+    description: '可聊天可推送可监控，还在更新',
+    description_en: 'Chat, push notifications, monitoring - still updating'
   }
 ];
 
