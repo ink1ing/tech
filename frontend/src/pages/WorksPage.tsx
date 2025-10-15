@@ -3,15 +3,15 @@ import { useAppContext } from '../context/AppContext';
 import PageContainer from '../components/PageContainer';
 
 const works = [
-  { 
-    title: 'Highest', 
+  {
+    title: '高的',
     title_en: 'Highest',
     url: 'https://ink1ing.tech/highest',
     description: 'Free LLM all in 1',
     description_en: 'Free LLM all in 1'
   },
-  { 
-    title: 'Laziest brow', 
+  {
+    title: '懒的冲浪手',
     title_en: 'Laziest brow',
     url: 'https://github.com/ink1ing/laziest-brow',
     description: '超级谷歌导航栏（插件）',
