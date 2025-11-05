@@ -47,6 +47,7 @@ export default function Layout({ children }: LayoutProps) {
     { path: '/works', label: '我的作品' },
     { path: '/experience', label: '我的经验' },
     { path: '/thoughts', label: '我的思考' },
+    { path: '/myprompt', label: '我的提示词' },
     { path: '/other', label: '其他东西' },
     { path: '/private1', label: '私有访问1' },
     { path: '/private2', label: '私有访问2' }
@@ -56,6 +57,7 @@ export default function Layout({ children }: LayoutProps) {
     { path: '/works', label: 'My Works' },
     { path: '/experience', label: 'My Experience' },
     { path: '/thoughts', label: 'My Thoughts' },
+    { path: '/myprompt', label: 'My Prompt' },
     { path: '/other', label: 'Other Stuff' },
     { path: '/private1', label: 'Private Access 1' },
     { path: '/private2', label: 'Private Access 2' }
