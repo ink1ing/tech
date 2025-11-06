@@ -4,6 +4,13 @@ import PageContainer from '../components/PageContainer';
 
 const works = [
   {
+    title: 'ToTheMoon',
+    title_en: 'ToTheMoon',
+    url: 'https://tothemoon.ink1ing.tech',
+    description: '由 DeepSeek 驱动的加密合约量化交易系统',
+    description_en: 'DeepSeek-powered quantitative crypto derivatives trading system'
+  },
+  {
     title: '高的',
     title_en: 'Highest',
     url: 'https://ink1ing.tech/highest',
