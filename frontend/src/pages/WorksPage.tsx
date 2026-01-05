@@ -5,18 +5,18 @@ import FeatureCard from '../components/FeatureCard';
 
 const works = [
   {
+    title: 'anti-api',
+    title_en: 'anti-api',
+    url: 'https://github.com/ink1ing/anti-api',
+    description: '一键将antigravity接入claude code等服务',
+    description_en: 'One-click integration of antigravity into claude code and other services'
+  },
+  {
     title: 'ToTheMoon',
     title_en: 'ToTheMoon',
     url: 'https://tothemoon.ink1ing.tech',
     description: '由 DeepSeek 驱动的加密合约量化交易系统',
     description_en: 'DeepSeek-powered quantitative crypto derivatives trading system'
-  },
-  {
-    title: '高的',
-    title_en: 'Highest',
-    url: 'https://ink1ing.tech/highest',
-    description: 'Free LLM all in 1',
-    description_en: 'Free LLM all in 1'
   },
   {
     title: '懒的冲浪手',
@@ -45,20 +45,6 @@ const works = [
     url: 'https://jasper-goldenrod-aa1.notion.site/2100a9798195803eab93d38e9b62cee0?pvs=74',
     description: '提示词工程指南精粹',
     description_en: 'Prompt engineering guide essentials'
-  },
-  {
-    title: '即开即用的LLM',
-    title_en: 'Ready-to-Use LLM',
-    url: 'https://grok-3-fast-with-live-search.onrender.com/',
-    description: '功能简单，持续开发',
-    description_en: 'Simple functionality, continuous development'
-  },
-  {
-    title: 'Telegram小秘书',
-    title_en: 'Telegram Assistant Bot',
-    url: 'https://t.me/agent_daily_20251007_bot',
-    description: '可聊天可推送可监控，还在更新',
-    description_en: 'Chat, push notifications, monitoring - still updating'
   }
 ];
 

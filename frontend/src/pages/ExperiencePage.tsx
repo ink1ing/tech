@@ -38,6 +38,13 @@ const experiences = [
     url: 'https://jasper-goldenrod-aa1.notion.site/claude-2870a979819580169eb6fab313d6a667?source=copy_link',
     description: '基于Fuclaude项目和Cloudflare免费计划',
     description_en: 'Based on Fuclaude project and Cloudflare free plan'
+  },
+  {
+    title: '关于减肥',
+    title_en: 'About Weight Loss',
+    url: 'https://x.com/Ink_thesilent/status/2007814277906977016?s=20',
+    description: '快速、无痛、可持续、不反弹的减肥思路',
+    description_en: 'Fast, painless, sustainable, and rebound-free weight loss approach'
   }
 ];
 

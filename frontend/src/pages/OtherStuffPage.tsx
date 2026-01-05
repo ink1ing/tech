@@ -25,33 +25,26 @@ const affiliateLinks = [
     description: '免费获得各家旗舰 LLM 访问权（合计 500 万 Tokens）',
     description_en: 'Free access to flagship LLMs (total 5M tokens)'
   },
-  { 
-    title: 'Binance返佣', 
+  {
+    title: 'Binance返佣',
     title_en: 'Binance Referral',
     url: 'https://www.binance.com/zh-CN/futures/ref/863583772',
     description: 'Binance期货返佣链接',
     description_en: 'Binance futures referral link'
   },
-  { 
-    title: 'OKX返佣', 
+  {
+    title: 'OKX返佣',
     title_en: 'OKX Referral',
     url: 'https://ouydl.me/ul/YbU25D?channelId=25355853',
     description: 'OKX返佣链接',
     description_en: 'OKX referral link'
   },
-  { 
-    title: '推荐节点', 
+  {
+    title: '推荐节点',
     title_en: 'Recommended Nodes',
     url: 'https://fbinv02.fbaff.cc/auth/register?code=LAFDdJC7',
     description: '高速稳定网络节点',
     description_en: 'High-speed and stable network nodes'
-  },
-  { 
-    title: 'clash-verge下载', 
-    title_en: 'clash-verge Download',
-    url: 'https://github.com/clash-verge-rev/clash-verge-rev',
-    description: '最先进的桌面端代理',
-    description_en: 'The most advanced desktop proxy'
   }
 ];
 
