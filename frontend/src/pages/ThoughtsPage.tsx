@@ -17,7 +17,7 @@ export default function ThoughtsPage() {
   const { language, isDark } = useAppContext();
 
   return (
-    <PageContainer title="我的思考" titleEn="My Thoughts" language={language} isDark={isDark}>
+    <PageContainer title="Silas' 思考" titleEn="Silas' Thoughts" language={language} isDark={isDark}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {thoughts.map((thought, index) => (
           <FeatureCard

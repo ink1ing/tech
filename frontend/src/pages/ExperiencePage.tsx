@@ -45,7 +45,7 @@ export default function ExperiencePage() {
   const { language, isDark } = useAppContext();
 
   return (
-    <PageContainer title="我的经验" titleEn="My Experience" language={language} isDark={isDark}>
+    <PageContainer title="Silas' 经验" titleEn="Silas' Experience" language={language} isDark={isDark}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {experiences.map((exp, index) => (
           <FeatureCard

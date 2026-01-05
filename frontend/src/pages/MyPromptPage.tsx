@@ -46,7 +46,7 @@ export default function MyPromptPage() {
   const { language, isDark } = useAppContext();
 
   return (
-    <PageContainer title="我的商店" titleEn="My Store" language={language} isDark={isDark}>
+    <PageContainer title="Silas' 商店" titleEn="Silas' Store" language={language} isDark={isDark}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {storeItems.map((item, index) => (
           <FeatureCard

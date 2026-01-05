@@ -32,17 +32,12 @@ export default function AboutPage() {
   const { language, isDark } = useAppContext();
 
   return (
-    <PageContainer title="关于我" titleEn="About Me" language={language} isDark={isDark}>
+    <PageContainer title="关于 Silas" titleEn="About Silas" language={language} isDark={isDark}>
       <p className={`font-bold mb-8 ${isDark ? 'text-gray-300' : 'text-black'}`}>
-        {language === 'zh' 
-          ? '每一个所谓起舞的日子都是对世俗的拥护' 
-          : 'Each day we choose to dance deliberately is a day we embrace worldly conformity.'}
+        I should be sober, I can't afford to be boring.
       </p>
 
       <div>
-        <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-black'}`}>
-          {language === 'zh' ? '联系方式' : 'Contact Information'}
-        </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {socialLinks.map((link) => {
             const Icon = link.icon;
