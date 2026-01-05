@@ -47,7 +47,7 @@ export default function Layout({ children }: LayoutProps) {
     { path: '/works', label: 'Silas\' 作品' },
     { path: '/experience', label: 'Silas\' 经验' },
     { path: '/thoughts', label: 'Silas\' 思考' },
-    { path: '/myprompt', label: 'Silas\' Store' },
+    { path: '/mystore', label: 'Silas\' 商店' },
     { path: '/other', label: '其他东西' },
     { path: '/private1', label: '私有访问1' },
     { path: '/private2', label: '私有访问2' }
@@ -57,7 +57,7 @@ export default function Layout({ children }: LayoutProps) {
     { path: '/works', label: 'Silas\' Works' },
     { path: '/experience', label: 'Silas\' Experience' },
     { path: '/thoughts', label: 'Silas\' Thoughts' },
-    { path: '/myprompt', label: 'Silas\' Store' },
+    { path: '/mystore', label: 'Silas\' Store' },
     { path: '/other', label: 'Other Stuff' },
     { path: '/private1', label: 'Private Access 1' },
     { path: '/private2', label: 'Private Access 2' }
@@ -135,12 +135,12 @@ export default function Layout({ children }: LayoutProps) {
                 <button
                   onClick={() => setLanguage('zh')}
                   className={`px-3 py-1 rounded-full text-sm font-bold transition-all ${language === 'zh'
-                      ? isDark
-                        ? 'bg-gray-900 text-white border border-gray-700'
-                        : 'glass-light text-black'
-                      : isDark
-                        ? 'text-gray-400 border border-transparent hover:bg-white/5'
-                        : 'glass-light text-black'
+                    ? isDark
+                      ? 'bg-gray-900 text-white border border-gray-700'
+                      : 'glass-light text-black'
+                    : isDark
+                      ? 'text-gray-400 border border-transparent hover:bg-white/5'
+                      : 'glass-light text-black'
                     }`}
                 >
                   中文
@@ -148,12 +148,12 @@ export default function Layout({ children }: LayoutProps) {
                 <button
                   onClick={() => setLanguage('en')}
                   className={`px-3 py-1 rounded-full text-sm font-bold transition-all ${language === 'en'
-                      ? isDark
-                        ? 'bg-gray-900 text-white border border-gray-700'
-                        : 'glass-light text-black'
-                      : isDark
-                        ? 'text-gray-400 border border-transparent hover:bg-white/5'
-                        : 'glass-light text-black'
+                    ? isDark
+                      ? 'bg-gray-900 text-white border border-gray-700'
+                      : 'glass-light text-black'
+                    : isDark
+                      ? 'text-gray-400 border border-transparent hover:bg-white/5'
+                      : 'glass-light text-black'
                     }`}
                 >
                   EN
@@ -165,8 +165,8 @@ export default function Layout({ children }: LayoutProps) {
                   }`}
               >
                 <div className={`w-4 h-4 rounded-full transition-transform duration-200 flex items-center justify-center ${isDark
-                    ? 'bg-gray-700 translate-x-6 text-white'
-                    : 'bg-white translate-x-0 text-gray-600'
+                  ? 'bg-gray-700 translate-x-6 text-white'
+                  : 'bg-white translate-x-0 text-gray-600'
                   }`}>
                   {isDark ? <Moon className="w-2 h-2" /> : <Sun className="w-2 h-2" />}
                 </div>
@@ -180,12 +180,12 @@ export default function Layout({ children }: LayoutProps) {
                   key={item.path}
                   onClick={() => handleNavigation(item.path)}
                   className={`px-3 py-2 rounded font-bold cursor-pointer transition-all select-none ${location.pathname === item.path
-                      ? isDark
-                        ? 'text-white border border-gray-700 bg-gray-900'
-                        : 'glass-light text-black'
-                      : isDark
-                        ? 'text-gray-300 hover:bg-white/5'
-                        : 'text-black hover:bg-white/50'
+                    ? isDark
+                      ? 'text-white border border-gray-700 bg-gray-900'
+                      : 'glass-light text-black'
+                    : isDark
+                      ? 'text-gray-300 hover:bg-white/5'
+                      : 'text-black hover:bg-white/50'
                     } active:scale-95`}
                 >
                   {item.label}
@@ -199,8 +199,8 @@ export default function Layout({ children }: LayoutProps) {
                 <button
                   onClick={handleLogout}
                   className={`w-full px-3 py-2 rounded font-bold transition-all ${isDark
-                      ? 'text-red-300 border border-red-800 hover:bg-white/5'
-                      : 'glass-light text-black'
+                    ? 'text-red-300 border border-red-800 hover:bg-white/5'
+                    : 'glass-light text-black'
                     }`}
                 >
                   {language === 'zh' ? '登出' : 'Logout'}

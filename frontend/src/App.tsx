@@ -23,7 +23,7 @@ function App() {
             <Route path="/works" element={<WorksPage />} />
             <Route path="/experience" element={<ExperiencePage />} />
             <Route path="/thoughts" element={<ThoughtsPage />} />
-            <Route path="/myprompt" element={<MyPromptPage />} />
+            <Route path="/mystore" element={<MyPromptPage />} />
             <Route path="/other" element={<OtherStuffPage />} />
             <Route path="/private1" element={<PrivateAccessPage section="private1" />} />
             <Route path="/private2" element={<PrivateAccessPage section="private2" />} />
