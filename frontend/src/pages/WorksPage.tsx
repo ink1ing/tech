@@ -1,0 +1,87 @@
+import React from 'react';
+import { useAppContext } from '../context/AppContext';
+import PageContainer from '../components/PageContainer';
+import FeatureCard from '../components/FeatureCard';
+
+const works = [
+  {
+    title: 'ToTheMoon',
+    title_en: 'ToTheMoon',
+    url: 'https://tothemoon.ink1ing.tech',
+    description: '由 DeepSeek 驱动的加密合约量化交易系统',
+    description_en: 'DeepSeek-powered quantitative crypto derivatives trading system'
+  },
+  {
+    title: '高的',
+    title_en: 'Highest',
+    url: 'https://ink1ing.tech/highest',
+    description: 'Free LLM all in 1',
+    description_en: 'Free LLM all in 1'
+  },
+  {
+    title: '懒的冲浪手',
+    title_en: 'Laziest brow',
+    url: 'https://github.com/ink1ing/laziest-brow',
+    description: '超级谷歌导航栏（插件）',
+    description_en: 'Super Google Navigation Bar (Extension)'
+  },
+  { 
+    title: '大模型能力对比', 
+    title_en: 'Large Model Capability Comparison',
+    url: 'https://ink1ing.github.io/ai-model-comparison/',
+    description: '详细对比各种大模型的能力和性能',
+    description_en: 'Detailed comparison of various large model capabilities and performance'
+  },
+  { 
+    title: '节点订阅转换器', 
+    title_en: 'Node Subscription Converter',
+    url: 'https://github.com/ink1ing/hulink',
+    description: '开源的节点订阅转换工具',
+    description_en: 'Open-source node subscription conversion tool'
+  },
+  { 
+    title: '御三家提示词工程指南精粹', 
+    title_en: 'Top Three Prompt Engineering Guide Essentials',
+    url: 'https://jasper-goldenrod-aa1.notion.site/2100a9798195803eab93d38e9b62cee0?pvs=74',
+    description: '提示词工程指南精粹',
+    description_en: 'Prompt engineering guide essentials'
+  },
+  {
+    title: '即开即用的LLM',
+    title_en: 'Ready-to-Use LLM',
+    url: 'https://grok-3-fast-with-live-search.onrender.com/',
+    description: '功能简单，持续开发',
+    description_en: 'Simple functionality, continuous development'
+  },
+  {
+    title: 'Telegram小秘书',
+    title_en: 'Telegram Assistant Bot',
+    url: 'https://t.me/agent_daily_20251007_bot',
+    description: '可聊天可推送可监控，还在更新',
+    description_en: 'Chat, push notifications, monitoring - still updating'
+  }
+];
+
+export default function WorksPage() {
+  const { language, isDark } = useAppContext();
+
+  return (
+    <PageContainer title="我的作品" titleEn="My Works" language={language} isDark={isDark}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {works.map((work, index) => (
+          <FeatureCard
+            key={index}
+            title={work.title}
+            titleEn={work.title_en}
+            description={work.description}
+            descriptionEn={work.description_en}
+            url={work.url}
+            language={language}
+            isDark={isDark}
+            className="h-full"
+          />
+        ))}
+      </div>
+    </PageContainer>
+  );
+}
