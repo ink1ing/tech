@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import authService from '../services/authService';
+import React, { createContext, useContext, useState } from 'react';
 
 // 全局应用状态接口
 interface AppContextType {
@@ -7,9 +6,6 @@ interface AppContextType {
   setIsDark: (dark: boolean) => void;
   language: 'zh' | 'en';
   setLanguage: (lang: 'zh' | 'en') => void;
-  isAuthenticated: boolean;
-  setIsAuthenticated: (auth: boolean) => void;
-  checkAuth: () => Promise<void>;
 }
 
 // 创建Context
@@ -19,32 +15,8 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isDark, setIsDark] = useState(true);
   const [language, setLanguage] = useState<'zh' | 'en'>('en');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // 检查认证状态
-  const checkAuth = async () => {
-    try {
-      const result = await authService.verifyToken();
-      setIsAuthenticated(result.valid);
-    } catch (error) {
-      setIsAuthenticated(false);
-    }
-  };
-
-  // 初始化检查认证状态
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const value = {
-    isDark,
-    setIsDark,
-    language,
-    setLanguage,
-    isAuthenticated,
-    setIsAuthenticated,
-    checkAuth,
-  };
+  const value = { isDark, setIsDark, language, setLanguage };
 
   return (
     <AppContext.Provider value={value}>

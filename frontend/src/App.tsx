@@ -8,7 +8,6 @@ import WorksPage from './pages/WorksPage';
 import ExperiencePage from './pages/ExperiencePage';
 import ThoughtsPage from './pages/ThoughtsPage';
 import OtherStuffPage from './pages/OtherStuffPage';
-import PrivateAccessPage from './pages/PrivateAccessPage';
 import MyPromptPage from './pages/MyPromptPage';
 
 function App() {
@@ -25,8 +24,6 @@ function App() {
             <Route path="/thoughts" element={<ThoughtsPage />} />
             <Route path="/mystore" element={<MyPromptPage />} />
             <Route path="/other" element={<OtherStuffPage />} />
-            <Route path="/private1" element={<PrivateAccessPage section="private1" />} />
-            <Route path="/private2" element={<PrivateAccessPage section="private2" />} />
             <Route path="*" element={<Navigate to="/navigation" replace />} />
           </Routes>
         </Layout>

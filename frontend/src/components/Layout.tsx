@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Sun, Moon } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import authService from '../services/authService';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const { isDark, setIsDark, language, setLanguage, isAuthenticated, setIsAuthenticated } = useAppContext();
+  const { isDark, setIsDark, language, setLanguage } = useAppContext();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
@@ -48,9 +47,7 @@ export default function Layout({ children }: LayoutProps) {
     { path: '/experience', label: 'Silas\' 经验' },
     { path: '/thoughts', label: 'Silas\' 思考' },
     { path: '/mystore', label: 'Silas\' 商店' },
-    { path: '/other', label: '其他东西' },
-    { path: '/private1', label: '私有访问1' },
-    { path: '/private2', label: '私有访问2' }
+    { path: '/other', label: '其他东西' }
   ] : [
     { path: '/navigation', label: 'Navigation' },
     { path: '/about', label: 'About Silas' },
@@ -58,9 +55,7 @@ export default function Layout({ children }: LayoutProps) {
     { path: '/experience', label: 'Silas\' Experience' },
     { path: '/thoughts', label: 'Silas\' Thoughts' },
     { path: '/mystore', label: 'Silas\' Store' },
-    { path: '/other', label: 'Other Stuff' },
-    { path: '/private1', label: 'Private Access 1' },
-    { path: '/private2', label: 'Private Access 2' }
+    { path: '/other', label: 'Other Stuff' }
   ];
 
   const handleNavigation = (path: string) => {
@@ -70,18 +65,6 @@ export default function Layout({ children }: LayoutProps) {
     if (isMobile) {
       setIsSidebarOpen(false);
     }
-
-    // 如果切换到非私有页面，清除所有认证状态
-    if (!path.startsWith('/private')) {
-      authService.clearAuth();
-      setIsAuthenticated(false);
-    }
-  };
-
-  const handleLogout = () => {
-    authService.logout();
-    setIsAuthenticated(false);
-    navigate('/navigation');
   };
 
   return (
@@ -192,21 +175,6 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
               ))}
             </nav>
-
-            {/* 登出按钮 (仅在已认证时显示) */}
-            {isAuthenticated && (
-              <div className="mt-6 pt-6 border-t border-gray-600">
-                <button
-                  onClick={handleLogout}
-                  className={`w-full px-3 py-2 rounded font-bold transition-all ${isDark
-                    ? 'text-red-300 border border-red-800 hover:bg-white/5'
-                    : 'glass-light text-black'
-                    }`}
-                >
-                  {language === 'zh' ? '登出' : 'Logout'}
-                </button>
-              </div>
-            )}
           </>
         )}
       </div>
