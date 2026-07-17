@@ -21,7 +21,7 @@ const socialLinks = [
   },
   {
     name: 'Mail',
-    url: 'mailto:ink@ink1ing.tech',
+    url: 'mailto:ink@shangdian.me',
     icon: Mail,
     description: '商务合作和技术交流',
     descriptionEn: 'Business cooperation and technical exchange'

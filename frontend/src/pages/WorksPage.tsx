@@ -14,7 +14,7 @@ const works = [
   {
     title: 'ToTheMoon',
     title_en: 'ToTheMoon',
-    url: 'https://tothemoon.ink1ing.tech',
+    url: 'https://tothemoon.shangdian.me',
     description: '由 DeepSeek 驱动的加密合约量化交易系统',
     description_en: 'DeepSeek-powered quantitative crypto derivatives trading system'
   },

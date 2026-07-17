@@ -17,28 +17,28 @@ const storeItems: StoreItem[] = [
     titleEn: 'ChatGPT Plus Annual Subscription',
     description: '$14.99',
     descriptionEn: '$14.99',
-    url: 'https://store.ink1ing.tech/gpt'
+    url: 'https://store.shangdian.me/gpt'
   },
   {
     title: 'Google AI Pro SheerID 认证',
     titleEn: 'Google AI Pro SheerID Verification',
     description: '$3.99',
     descriptionEn: '$3.99',
-    url: 'https://store.ink1ing.tech/google'
+    url: 'https://store.shangdian.me/google'
   },
   {
     title: '科技相关咨询',
     titleEn: 'Tech Consulting',
     description: '$19.99/30min',
     descriptionEn: '$19.99/30min',
-    url: 'https://store.ink1ing.tech/tech'
+    url: 'https://store.shangdian.me/tech'
   },
   {
     title: '投资相关咨询',
     titleEn: 'Investment Consulting',
     description: '$29.99/30min',
     descriptionEn: '$29.99/30min',
-    url: 'https://store.ink1ing.tech/invest'
+    url: 'https://store.shangdian.me/invest'
   }
 ];
 
