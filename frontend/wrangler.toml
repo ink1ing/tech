@@ -14,3 +14,5 @@ bucket_name = "silas-store-payment-proofs"
 
 [vars]
 STORE_ORIGIN = "https://shangdian.me"
+ALIPAY_QR_URL = "https://shangdian.me/payments/alipay.jpg"
+WECHAT_QR_URL = "https://shangdian.me/payments/wechat.jpg"
