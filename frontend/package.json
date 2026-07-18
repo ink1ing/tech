@@ -8,6 +8,11 @@
     "build": "vite build",
     "build:safe": "node build-safe.js",
     "preview": "vite preview",
+    "cf:dev": "npm run build && wrangler pages dev dist",
+    "db:migrate:local": "wrangler d1 migrations apply silas-store --local",
+    "db:migrate:remote": "wrangler d1 migrations apply silas-store --remote",
+    "test:store": "node scripts/store-integration.mjs",
+    "deploy:cf": "npm run build && wrangler pages deploy dist --project-name silas-tech",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix"
   },
@@ -33,7 +38,8 @@
     "tailwindcss": "^3.3.3",
     "terser": "^5.19.2",
     "typescript": "^5.0.2",
-    "vite": "^4.4.5"
+    "vite": "^4.4.5",
+    "wrangler": "^4.112.0"
   },
   "keywords": [
     "react",

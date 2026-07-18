@@ -1,4 +1,3 @@
-import React from 'react';
 import { Twitter, Github, Mail } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import PageContainer from '../components/PageContainer';
