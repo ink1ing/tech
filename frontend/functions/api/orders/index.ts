@@ -12,6 +12,7 @@ interface OrderInput {
   shippingPhone?: string;
   shippingPostalCode?: string;
   paymentMethod?: string;
+  paymentNetwork?: string;
   note?: string;
 }
 
@@ -24,10 +25,12 @@ export async function onRequestPost({ request, env }: PagesContext) {
   const messenger = cleanText(input.messenger, 160);
   const productIds = Array.from(new Set((input.productIds || []).filter(id => typeof id === 'string'))).slice(0, 20);
   const paymentMethod = cleanText(input.paymentMethod, 20);
+  const paymentNetwork = paymentMethod === 'usdt' ? cleanText(input.paymentNetwork, 20) : '';
   if (!contactName || (!email && !messenger)) return fail('请填写姓名，并至少提供邮箱或 Telegram / 微信');
   if (!isEmail(email)) return fail('邮箱格式不正确');
   if (!productIds.length) return fail('购物袋为空');
   if (!['alipay', 'wechat', 'usdt'].includes(paymentMethod)) return fail('请选择有效的支付方式');
+  if (paymentMethod === 'usdt' && !['xlayer', 'bsc', 'solana', 'polygon'].includes(paymentNetwork)) return fail('请选择有效的 USDT 网络');
 
   const placeholders = productIds.map(() => '?').join(',');
   const productsResult = await env.DB.prepare(
@@ -52,15 +55,15 @@ export async function onRequestPost({ request, env }: PagesContext) {
   const statements = [
     env.DB.prepare(`INSERT INTO orders
       (id, order_number, lookup_hash, contact_name, email, messenger, fulfillment, shipping_address,
-       shipping_phone, shipping_postal_code, payment_method, total_cents, customer_note)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+       shipping_phone, shipping_postal_code, payment_method, payment_network, total_cents, customer_note)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
       .bind(orderId, orderNumber, lookupHash, contactName, email, messenger, fulfillment, shippingAddress,
-        shippingPhone, shippingPostalCode, paymentMethod, totalCents, cleanText(input.note, 1000)),
+        shippingPhone, shippingPostalCode, paymentMethod, paymentNetwork, totalCents, cleanText(input.note, 1000)),
     ...products.map((product: any) => env.DB.prepare(
       'INSERT INTO order_items (order_id, product_id, product_name, unit_price_cents, quantity) VALUES (?, ?, ?, ?, 1)',
     ).bind(orderId, product.id, product.name, product.price_cents)),
     env.DB.prepare('INSERT INTO order_events (order_id, event_type, detail) VALUES (?, ?, ?)')
-      .bind(orderId, 'order_created', `Payment method: ${paymentMethod}`),
+      .bind(orderId, 'order_created', `Payment method: ${paymentMethod}${paymentNetwork ? `; network: ${paymentNetwork}` : ''}`),
   ];
   await env.DB.batch(statements);
 
@@ -68,7 +71,7 @@ export async function onRequestPost({ request, env }: PagesContext) {
     'Silas Store 新订单',
     `订单：${orderNumber}`,
     `金额：¥${(totalCents / 100).toFixed(2)}`,
-    `支付：${paymentMethod}`,
+    `支付：${paymentMethod}${paymentNetwork ? ` / ${paymentNetwork}` : ''}`,
     `商品：${products.map((product: any) => product.name).join('、')}`,
   ].join('\n'));
 
@@ -77,11 +80,16 @@ export async function onRequestPost({ request, env }: PagesContext) {
     lookupKey,
     totalCents,
     paymentMethod,
+    paymentNetwork,
     paymentConfig: {
       alipayQrUrl: env.ALIPAY_QR_URL || '',
       wechatQrUrl: env.WECHAT_QR_URL || '',
-      usdtAddress: env.USDT_TRC20_ADDRESS || '',
-      usdtNetwork: 'TRC20',
+      usdtOptions: [
+        { id: 'xlayer', name: 'X Layer', qrUrl: env.USDT_XLAYER_QR_URL || '' },
+        { id: 'bsc', name: 'BNB Chain', qrUrl: env.USDT_BSC_QR_URL || '' },
+        { id: 'solana', name: 'Solana', qrUrl: env.USDT_SOLANA_QR_URL || '' },
+        { id: 'polygon', name: 'Polygon', qrUrl: env.USDT_POLYGON_QR_URL || '' },
+      ],
     },
   }, 201);
 }

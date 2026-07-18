@@ -5,7 +5,7 @@ import { sha256 } from '../../../_lib/security';
 export async function onRequestGet({ request, env, params }: PagesContext) {
   const lookupKey = new URL(request.url).searchParams.get('key') || '';
   if (!lookupKey) return fail('请输入订单查询密钥', 401, 'LOOKUP_KEY_REQUIRED');
-  const order = await env.DB.prepare(`SELECT id, order_number, fulfillment, payment_method, payment_status,
+  const order = await env.DB.prepare(`SELECT id, order_number, fulfillment, payment_method, payment_network, payment_status,
     order_status, currency, total_cents, created_at, updated_at FROM orders WHERE order_number = ? AND lookup_hash = ?`)
     .bind(params.orderId, await sha256(lookupKey)).first();
   if (!order) return fail('订单号或查询密钥不正确', 404, 'ORDER_NOT_FOUND');

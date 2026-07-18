@@ -13,6 +13,12 @@ const iconMap: Record<string, typeof Package> = {
 
 const money = (cents: number) => `¥${(cents / 100).toLocaleString('zh-CN', { minimumFractionDigits: cents % 100 ? 2 : 0 })}`;
 const paymentNames: Record<string, string> = { alipay: '支付宝', wechat: '微信支付', usdt: 'USDT' };
+const usdtNetworks = [
+  { id: 'xlayer', name: 'X Layer' },
+  { id: 'bsc', name: 'BNB Chain' },
+  { id: 'solana', name: 'Solana' },
+  { id: 'polygon', name: 'Polygon' },
+];
 const orderStatusNames: Record<string, string> = {
   pending: '等待处理', processing: '处理中', fulfilled: '已交付', shipped: '已发货', completed: '已完成', cancelled: '已取消',
 };
@@ -22,11 +28,11 @@ const paymentStatusNames: Record<string, string> = {
 
 interface CheckoutForm {
   contactName: string; email: string; messenger: string; shippingAddress: string;
-  shippingPhone: string; shippingPostalCode: string; paymentMethod: 'alipay' | 'wechat' | 'usdt'; note: string;
+  shippingPhone: string; shippingPostalCode: string; paymentMethod: 'alipay' | 'wechat' | 'usdt'; paymentNetwork: string; note: string;
 }
 
 const initialCheckout: CheckoutForm = {
-  contactName: '', email: '', messenger: '', shippingAddress: '', shippingPhone: '', shippingPostalCode: '', paymentMethod: 'alipay', note: '',
+  contactName: '', email: '', messenger: '', shippingAddress: '', shippingPhone: '', shippingPostalCode: '', paymentMethod: 'alipay', paymentNetwork: 'xlayer', note: '',
 };
 
 export default function StorePage() {
@@ -195,10 +201,36 @@ function CheckoutContent(props: { form: CheckoutForm; setForm: React.Dispatch<Re
   const { form, setForm, needsShipping, products, total, receipt, busy } = props;
   const update = (field: keyof CheckoutForm, value: string) => setForm(current => ({ ...current, [field]: value }));
   if (receipt) {
-    const configValue = receipt.paymentMethod === 'usdt' ? receipt.paymentConfig.usdtAddress : receipt.paymentMethod === 'alipay' ? receipt.paymentConfig.alipayQrUrl : receipt.paymentConfig.wechatQrUrl;
-    return <form className="payment-step" onSubmit={props.onPayment}><small>订单已创建</small><h2>完成付款并提交流水</h2><div className="order-credentials"><div><span>订单号</span><strong>{receipt.orderNumber}</strong></div><div><span>查询密钥</span><strong>{receipt.lookupKey}</strong></div><p>查询密钥只显示一次，已同时保存在当前浏览器。</p></div><div className="payment-instruction"><h3>{paymentNames[receipt.paymentMethod]} · {money(receipt.totalCents)}</h3>{receipt.paymentMethod === 'usdt' ? <><p>网络：TRC20</p><code>{configValue || '上线后配置 USDT 收款地址'}</code></> : configValue ? <img src={configValue} alt={`${paymentNames[receipt.paymentMethod]}收款码`} /> : <div className="qr-placeholder"><CreditCard /><span>上线后配置收款码</span></div>}</div><label>付款流水号 / USDT 交易哈希<input required value={props.paymentReference} onChange={event => props.setPaymentReference(event.target.value)} placeholder="用于核验付款" /></label><label>付款截图（可选，最大 5MB）<input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => props.setPaymentProof(event.target.files?.[0] || null)} /></label><button className="store-primary" disabled={busy}>{busy ? '正在提交…' : '我已付款，提交核验'}</button></form>;
+    const usdtOption = receipt.paymentConfig.usdtOptions.find(option => option.id === receipt.paymentNetwork);
+    const qrUrl = receipt.paymentMethod === 'usdt'
+      ? usdtOption?.qrUrl
+      : receipt.paymentMethod === 'alipay' ? receipt.paymentConfig.alipayQrUrl : receipt.paymentConfig.wechatQrUrl;
+    return <form className="payment-step" onSubmit={props.onPayment}>
+      <small>订单已创建</small><h2>完成付款并提交流水</h2>
+      <div className="order-credentials"><div><span>订单号</span><strong>{receipt.orderNumber}</strong></div><div><span>查询密钥</span><strong>{receipt.lookupKey}</strong></div><p>查询密钥只显示一次，已同时保存在当前浏览器。</p></div>
+      <div className="payment-instruction">
+        <h3>{paymentNames[receipt.paymentMethod]} · {money(receipt.totalCents)}</h3>
+        {receipt.paymentMethod === 'usdt' && <p>网络：{usdtOption?.name || receipt.paymentNetwork}</p>}
+        {qrUrl ? <img src={qrUrl} alt={`${paymentNames[receipt.paymentMethod]}${usdtOption ? ` ${usdtOption.name}` : ''}收款码`} /> : <div className="qr-placeholder"><CreditCard /><span>上线后配置收款码</span></div>}
+        {receipt.paymentMethod === 'usdt' && <strong className="network-warning">请仅通过所选网络转账，其他网络可能造成资产损失</strong>}
+      </div>
+      <label>付款流水号 / USDT 交易哈希<input required value={props.paymentReference} onChange={event => props.setPaymentReference(event.target.value)} placeholder="用于核验付款" /></label>
+      <label>付款截图（可选，最大 5MB）<input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => props.setPaymentProof(event.target.files?.[0] || null)} /></label>
+      <button className="store-primary" disabled={busy}>{busy ? '正在提交…' : '我已付款，提交核验'}</button>
+    </form>;
   }
-  return <form className="checkout-layout" onSubmit={props.onCreate}><div className="checkout-form"><small>安全结账</small><h2>完成订单</h2><p>无需登录。订单号将用于后续查询。</p><h3>联系方式</h3><div className="form-grid"><label>姓名<input required value={form.contactName} onChange={event => update('contactName', event.target.value)} placeholder="收件人或联系人" /></label><label>邮箱<input type="email" value={form.email} onChange={event => update('email', event.target.value)} placeholder="name@example.com" /></label></div><label>Telegram / 微信<input value={form.messenger} onChange={event => update('messenger', event.target.value)} placeholder="至少填写邮箱或此项" /></label>{needsShipping && <><h3>配送信息</h3><label>地址<input required value={form.shippingAddress} onChange={event => update('shippingAddress', event.target.value)} placeholder="省市区及详细地址" /></label><div className="form-grid"><label>电话<input required value={form.shippingPhone} onChange={event => update('shippingPhone', event.target.value)} placeholder="联系电话" /></label><label>邮编<input value={form.shippingPostalCode} onChange={event => update('shippingPostalCode', event.target.value)} placeholder="邮政编码" /></label></div></>}<h3>支付方式</h3><div className="payment-options">{(['alipay','wechat','usdt'] as const).map(method => <label key={method} className={form.paymentMethod === method ? 'selected' : ''}><input type="radio" name="payment" checked={form.paymentMethod === method} onChange={() => update('paymentMethod', method)} /><b>{method === 'alipay' ? '支' : method === 'wechat' ? '微' : '₮'}</b><span><strong>{paymentNames[method]}</strong><small>{method === 'usdt' ? 'TRC20' : '扫码支付'}</small></span></label>)}</div><label>订单备注（可选）<textarea value={form.note} onChange={event => update('note', event.target.value)} placeholder="交付要求或其他说明" /></label></div><aside className="checkout-summary"><h3>订单摘要</h3>{products.map(product => <div key={product.id}><span>{product.name}</span><strong>{money(product.price_cents)}</strong></div>)}<hr /><div className="checkout-total"><span>应付</span><strong>{money(total)}</strong></div><button className="store-primary" disabled={busy}>{busy ? '正在创建…' : '创建订单并付款'}</button><p><Check size={14} />订单与支付信息将留存供核验</p></aside></form>;
+  return <form className="checkout-layout" onSubmit={props.onCreate}>
+    <div className="checkout-form"><small>安全结账</small><h2>完成订单</h2><p>无需登录。订单号将用于后续查询。</p>
+      <h3>联系方式</h3><div className="form-grid"><label>姓名<input required value={form.contactName} onChange={event => update('contactName', event.target.value)} placeholder="收件人或联系人" /></label><label>邮箱<input type="email" value={form.email} onChange={event => update('email', event.target.value)} placeholder="name@example.com" /></label></div>
+      <label>Telegram / 微信<input value={form.messenger} onChange={event => update('messenger', event.target.value)} placeholder="至少填写邮箱或此项" /></label>
+      {needsShipping && <><h3>配送信息</h3><label>地址<input required value={form.shippingAddress} onChange={event => update('shippingAddress', event.target.value)} placeholder="省市区及详细地址" /></label><div className="form-grid"><label>电话<input required value={form.shippingPhone} onChange={event => update('shippingPhone', event.target.value)} placeholder="联系电话" /></label><label>邮编<input value={form.shippingPostalCode} onChange={event => update('shippingPostalCode', event.target.value)} placeholder="邮政编码" /></label></div></>}
+      <h3>支付方式</h3>
+      <div className="payment-options">{(['alipay','wechat','usdt'] as const).map(method => <label key={method} className={form.paymentMethod === method ? 'selected' : ''}><input type="radio" name="payment" checked={form.paymentMethod === method} onChange={() => update('paymentMethod', method)} /><b>{method === 'alipay' ? '支' : method === 'wechat' ? '微' : '₮'}</b><span><strong>{paymentNames[method]}</strong><small>{method === 'usdt' ? '多网络' : '扫码支付'}</small></span></label>)}</div>
+      {form.paymentMethod === 'usdt' && <><h3>USDT 网络</h3><div className="usdt-network-options">{usdtNetworks.map(network => <button type="button" key={network.id} className={form.paymentNetwork === network.id ? 'active' : ''} onClick={() => update('paymentNetwork', network.id)}>{network.name}</button>)}</div></>}
+      <label>订单备注（可选）<textarea value={form.note} onChange={event => update('note', event.target.value)} placeholder="交付要求或其他说明" /></label>
+    </div>
+    <aside className="checkout-summary"><h3>订单摘要</h3>{products.map(product => <div key={product.id}><span>{product.name}</span><strong>{money(product.price_cents)}</strong></div>)}<hr /><div className="checkout-total"><span>应付</span><strong>{money(total)}</strong></div><button className="store-primary" disabled={busy}>{busy ? '正在创建…' : '创建订单并付款'}</button><p><Check size={14} />订单与支付信息将留存供核验</p></aside>
+  </form>;
 }
 
 function LookupContent({ lookup, setLookup, result, onSubmit, busy }: { lookup: { orderNumber: string; lookupKey: string }; setLookup: React.Dispatch<React.SetStateAction<{ orderNumber: string; lookupKey: string }>>; result: LookupOrder | null; onSubmit: (event: React.FormEvent) => void; busy: boolean }) {

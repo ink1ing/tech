@@ -26,8 +26,7 @@ export interface Product {
 export interface PaymentConfig {
   alipayQrUrl: string;
   wechatQrUrl: string;
-  usdtAddress: string;
-  usdtNetwork: string;
+  usdtOptions: Array<{ id: string; name: string; qrUrl: string }>;
 }
 
 export interface OrderReceipt {
@@ -35,6 +34,7 @@ export interface OrderReceipt {
   lookupKey: string;
   totalCents: number;
   paymentMethod: 'alipay' | 'wechat' | 'usdt';
+  paymentNetwork: string;
   paymentConfig: PaymentConfig;
 }
 
@@ -48,6 +48,7 @@ export interface OrderSummary {
   shipping_address: string;
   shipping_phone: string;
   payment_method: string;
+  payment_network: string;
   payment_status: string;
   payment_reference: string;
   payment_proof_key: string;
@@ -63,6 +64,7 @@ export interface LookupOrder {
   order_number: string;
   fulfillment: 'digital' | 'shipping';
   payment_method: string;
+  payment_network: string;
   payment_status: string;
   order_status: string;
   currency: string;

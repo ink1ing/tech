@@ -9,7 +9,7 @@ export async function onRequestPost({ request, env, params }: PagesContext) {
   const paymentReference = cleanText(form.get('paymentReference'), 200);
   if (!lookupKey || !paymentReference) return fail('需要查询密钥和付款流水号');
 
-  const order = await env.DB.prepare('SELECT id, order_number, payment_method, total_cents FROM orders WHERE order_number = ? AND lookup_hash = ?')
+  const order = await env.DB.prepare('SELECT id, order_number, payment_method, payment_network, total_cents FROM orders WHERE order_number = ? AND lookup_hash = ?')
     .bind(params.orderId, await sha256(lookupKey)).first();
   if (!order) return fail('订单号或查询密钥不正确', 404, 'ORDER_NOT_FOUND');
 
@@ -34,7 +34,7 @@ export async function onRequestPost({ request, env, params }: PagesContext) {
     'Silas Store 待核验付款',
     `订单：${order.order_number}`,
     `金额：¥${(Number(order.total_cents) / 100).toFixed(2)}`,
-    `方式：${order.payment_method}`,
+    `方式：${order.payment_method}${order.payment_network ? ` / ${order.payment_network}` : ''}`,
     `流水：${paymentReference}`,
     proofKey ? '已上传付款截图' : '未上传截图',
   ].join('\n'));
@@ -46,4 +46,3 @@ function randomSafeName(name: string) {
   const extension = name.toLowerCase().match(/\.(jpg|jpeg|png|webp)$/)?.[0] || '.jpg';
   return `${crypto.randomUUID()}${extension}`;
 }
-
