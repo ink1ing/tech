@@ -3,6 +3,7 @@ export interface Category {
   slug: string;
   name: string;
   sort_order: number;
+  grid_columns?: 1 | 2;
   active?: number;
 }
 

@@ -11,6 +11,7 @@ async function request(path, options = {}) {
 const catalog = await request('/api/catalog');
 assert(catalog.categories.length >= 4, 'catalog categories');
 assert(catalog.products.length >= 8, 'catalog products');
+assert(catalog.categories.every(category => [1, 2].includes(category.grid_columns)), 'category grid layout');
 const paymentConfig = await request('/api/payment-config');
 assert(paymentConfig.usdtOptions.length === 4, 'USDT network configuration');
 

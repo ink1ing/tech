@@ -90,6 +90,7 @@ export default function StorePage() {
   const bagTotal = bagProducts.reduce((sum, product) => sum + product.price_cents, 0);
   const needsShipping = bagProducts.some(product => product.fulfillment === 'shipping');
   const detailProduct = slug ? products.find(product => product.slug === slug) : null;
+  const gridColumns = activeCategory === 'all' ? 2 : (categories.find(category => category.slug === activeCategory)?.grid_columns || 2);
 
   const addToBag = (product: Product) => {
     setBag(current => current.includes(product.id) ? current : [...current, product.id]);
@@ -162,7 +163,7 @@ export default function StorePage() {
             <div className="catalog-heading"><div><small>精选</small><h2>值得入手</h2></div><div className="segmented" aria-label="商品类型">{[['all','全部'],['digital','非邮寄'],['shipping','需邮寄']].map(([value,label]) => <button key={value} className={fulfillmentFilter === value ? 'active' : ''} onClick={() => setFulfillmentFilter(value)}>{label}</button>)}</div></div>
             {loading && <div className="store-empty">正在载入商品…</div>}
             {!loading && filteredProducts.length === 0 && <div className="store-empty">没有找到相关商品</div>}
-            <div className="store-product-grid">{filteredProducts.map(product => <ProductCard key={product.id} product={product} onOpen={() => navigate(`/mystore/product/${product.slug}`)} />)}</div>
+            <div className={`store-product-grid ${gridColumns === 1 ? 'grid-one' : ''}`}>{filteredProducts.map(product => <ProductCard key={product.id} product={product} onOpen={() => navigate(`/mystore/product/${product.slug}`)} />)}</div>
           </section>
 
           <section className="store-trust"><div><CreditCard /><h3>灵活支付</h3><p>支持支付宝、微信与 USDT。</p></div><div><CheckCircle2 /><h3>付款可核验</h3><p>每笔订单均保留支付流水。</p></div><div><MessageCircle /><h3>处理有提醒</h3><p>付款后自动触发订单通知。</p></div></section>
