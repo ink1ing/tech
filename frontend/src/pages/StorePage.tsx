@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
-  BarChart3, BookOpen, Check, CheckCircle2, CreditCard, FileText, Hammer, Menu,
+  ArrowLeft, BarChart3, BookOpen, Check, CheckCircle2, CreditCard, FileText, Hammer, Menu,
   MessageCircle, Package, Receipt as ReceiptText, Search, Settings, ShoppingBag, Star, Trash2, X,
 } from 'lucide-react';
 import { storeApi } from '../services/storeApi';
@@ -36,13 +37,14 @@ const initialCheckout: CheckoutForm = {
 };
 
 export default function StorePage() {
+  const navigate = useNavigate();
+  const { slug } = useParams<{ slug?: string }>();
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState('all');
   const [fulfillmentFilter, setFulfillmentFilter] = useState('all');
   const [query, setQuery] = useState('');
   const [bag, setBag] = useState<string[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [bagOpen, setBagOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -79,10 +81,10 @@ export default function StorePage() {
   const bagProducts = bag.map(id => products.find(product => product.id === id)).filter(Boolean) as Product[];
   const bagTotal = bagProducts.reduce((sum, product) => sum + product.price_cents, 0);
   const needsShipping = bagProducts.some(product => product.fulfillment === 'shipping');
+  const detailProduct = slug ? products.find(product => product.slug === slug) : null;
 
   const addToBag = (product: Product) => {
     setBag(current => current.includes(product.id) ? current : [...current, product.id]);
-    setSelectedProduct(null);
     setNotice('已加入购物袋');
   };
 
@@ -129,12 +131,10 @@ export default function StorePage() {
     <div className="store-app">
       <aside className={`store-sidebar ${navOpen ? 'open' : ''}`} aria-label="商店导航">
         <a className="store-brand" href="/mystore"><span>S</span>Silas Store</a>
-        <label className="store-search"><Search size={15} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索" /></label>
         <nav className="store-nav">
           <button className={activeCategory === 'all' ? 'active' : ''} onClick={() => chooseCategory('all')}><Star size={18} />发现</button>
           {categories.map(category => <button key={category.id} className={activeCategory === category.slug ? 'active' : ''} onClick={() => chooseCategory(category.slug)}><Package size={18} />{category.name}</button>)}
         </nav>
-        <div className="store-nav-section"><small>订单</small><button onClick={() => setLookupOpen(true)}><ReceiptText size={18} />查询订单</button></div>
         <div className="store-health"><i />支付服务正常</div>
       </aside>
 
@@ -144,25 +144,22 @@ export default function StorePage() {
         <header className="store-topbar">
           <button className="store-icon-button mobile-only" aria-label="打开导航" onClick={() => setNavOpen(true)}><Menu size={20} /></button>
           <strong className="mobile-only">Silas Store</strong>
-          <div className="store-top-actions"><button className="text-button" onClick={() => setLookupOpen(true)}>订单查询</button><button className="store-icon-button bag-button" aria-label="打开购物袋" onClick={() => setBagOpen(true)}><ShoppingBag size={19} /><span>{bag.length}</span></button></div>
+          <div className="store-top-actions"><label className="store-top-search"><Search size={15} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索商品" /></label><button className="text-button" onClick={() => setLookupOpen(true)}>订单查询</button><button className="store-icon-button bag-button" aria-label="打开购物袋" onClick={() => setBagOpen(true)}><ShoppingBag size={19} /><span>{bag.length}</span></button></div>
         </header>
 
         <div className="store-content">
+          {slug ? <ProductPageView product={detailProduct} products={products} loading={loading} onBack={() => navigate('/mystore')} onAdd={addToBag} onOpen={product => navigate(`/mystore/product/${product.slug}`)} /> : <>
           <section className="store-intro"><p>为你的工作流精选</p><h1>数字服务，简单购买。</h1><div>无需注册账户。付款完成后，使用订单号随时查询处理进度。</div></section>
-          <section className="store-feature" aria-label="本周推荐">
-            <div><small>本周推荐</small><h2>把 AI 真正接入你的工作。</h2><p>从账号配置到自动化落地，提供一对一远程协助。</p><button onClick={() => setSelectedProduct(products.find(product => product.slug === 'tech-consulting') || null)}>了解详情</button></div>
-            <div className="feature-art"><span><Hammer /></span><span><MessageCircle /></span><Hammer /></div>
-          </section>
-
           <section className="store-catalog">
             <div className="catalog-heading"><div><small>精选</small><h2>值得入手</h2></div><div className="segmented" aria-label="商品类型">{[['all','全部'],['digital','非邮寄'],['shipping','需邮寄']].map(([value,label]) => <button key={value} className={fulfillmentFilter === value ? 'active' : ''} onClick={() => setFulfillmentFilter(value)}>{label}</button>)}</div></div>
             {loading && <div className="store-empty">正在载入商品…</div>}
             {!loading && filteredProducts.length === 0 && <div className="store-empty">没有找到相关商品</div>}
-            <div className="store-product-grid">{filteredProducts.map(product => <ProductCard key={product.id} product={product} onOpen={() => setSelectedProduct(product)} />)}</div>
+            <div className="store-product-grid">{filteredProducts.map(product => <ProductCard key={product.id} product={product} onOpen={() => navigate(`/mystore/product/${product.slug}`)} />)}</div>
           </section>
 
           <section className="store-trust"><div><CreditCard /><h3>灵活支付</h3><p>支持支付宝、微信与 USDT。</p></div><div><CheckCircle2 /><h3>付款可核验</h3><p>每笔订单均保留支付流水。</p></div><div><MessageCircle /><h3>处理有提醒</h3><p>付款后自动触发订单通知。</p></div></section>
           <footer className="store-footer"><span>Copyright © 2026 Silas Store</span><a href="/navigation">返回主站</a><a href="/mystore/admin">管理员</a></footer>
+          </>}
         </div>
       </main>
 
@@ -173,7 +170,6 @@ export default function StorePage() {
       </aside>
       {bagOpen && <button className="drawer-scrim" aria-label="关闭购物袋" onClick={() => setBagOpen(false)} />}
 
-      {selectedProduct && <Modal onClose={() => setSelectedProduct(null)}><ProductDetail product={selectedProduct} onAdd={() => addToBag(selectedProduct)} /></Modal>}
       {checkoutOpen && <Modal wide onClose={() => { setCheckoutOpen(false); setReceipt(null); }}><CheckoutContent form={checkout} setForm={setCheckout} needsShipping={needsShipping} products={bagProducts} total={bagTotal} receipt={receipt} paymentReference={paymentReference} setPaymentReference={setPaymentReference} setPaymentProof={setPaymentProof} onCreate={createOrder} onPayment={submitPayment} busy={busy} /></Modal>}
       {lookupOpen && <Modal onClose={() => { setLookupOpen(false); setLookupResult(null); }}><LookupContent lookup={lookup} setLookup={setLookup} result={lookupResult} onSubmit={lookupOrder} busy={busy} /></Modal>}
 
@@ -192,9 +188,20 @@ function Modal({ children, onClose, wide = false }: { children: React.ReactNode;
   return <div className="store-modal-layer" role="presentation"><section className={`store-modal ${wide ? 'wide' : ''}`} role="dialog" aria-modal="true"><button className="store-icon-button modal-close" aria-label="关闭" onClick={onClose}><X /></button>{children}</section></div>;
 }
 
-function ProductDetail({ product, onAdd }: { product: Product; onAdd: () => void }) {
+function ProductPageView({ product, products, loading, onBack, onAdd, onOpen }: { product: Product | null; products: Product[]; loading: boolean; onBack: () => void; onAdd: (product: Product) => void; onOpen: (product: Product) => void }) {
+  if (loading) return <div className="product-page"><div className="store-empty">正在载入商品…</div></div>;
+  if (!product) return <div className="product-page"><button className="back-button" onClick={onBack}><ArrowLeft size={17} />返回商品</button><div className="store-empty"><Package /><h3>商品不存在</h3><p>该商品可能已下架或链接已失效。</p></div></div>;
   const Icon = iconMap[product.icon] || Package;
-  return <div className="product-detail"><div className="product-detail-head"><div className="product-icon large"><Icon /></div><div><small>{product.fulfillment === 'shipping' ? '需邮寄' : '非邮寄'}</small><h2>{product.name}</h2><p>{product.subtitle}</p></div></div><div className="detail-price"><strong>{money(product.price_cents)}</strong><button className="store-primary" onClick={onAdd}>加入购物袋</button></div><p className="detail-description">{product.description}</p><dl><div><dt>交付方式</dt><dd>{product.fulfillment === 'shipping' ? '快递邮寄' : '线上交付'}</dd></div><div><dt>预计时间</dt><dd>{product.delivery_note}</dd></div><div><dt>订单查询</dt><dd>无需登录</dd></div></dl></div>;
+  const related = products.filter(item => item.id !== product.id && item.category_slug === product.category_slug).slice(0, 3);
+  return <div className="product-page">
+    <button className="back-button" onClick={onBack}><ArrowLeft size={17} />返回商品</button>
+    <section className="product-hero">
+      <div className={`product-icon product-icon-hero tone-${product.sort_order % 4}`}><Icon /></div>
+      <div className="product-hero-copy"><small>{product.category_name || product.category_slug || '精选商品'}</small><h1>{product.name}</h1><p>{product.subtitle}</p><div className="product-hero-price"><strong>{money(product.price_cents)}</strong><button className="store-primary" onClick={() => onAdd(product)}>加入购物袋</button></div></div>
+    </section>
+    <div className="product-page-grid"><article className="product-description"><h2>关于此商品</h2><p>{product.description}</p></article><aside className="product-facts"><div><span>交付方式</span><strong>{product.fulfillment === 'shipping' ? '快递邮寄' : '线上交付'}</strong></div><div><span>预计时间</span><strong>{product.delivery_note}</strong></div><div><span>订单查询</span><strong>无需登录</strong></div></aside></div>
+    {related.length > 0 && <section className="related-products"><div className="catalog-heading"><div><small>更多选择</small><h2>同类商品</h2></div></div><div className="store-product-grid">{related.map(item => <ProductCard key={item.id} product={item} onOpen={() => onOpen(item)} />)}</div></section>}
+  </div>;
 }
 
 function CheckoutContent(props: { form: CheckoutForm; setForm: React.Dispatch<React.SetStateAction<CheckoutForm>>; needsShipping: boolean; products: Product[]; total: number; receipt: OrderReceipt | null; paymentReference: string; setPaymentReference: (value: string) => void; setPaymentProof: (file: File | null) => void; onCreate: (event: React.FormEvent) => void; onPayment: (event: React.FormEvent) => void; busy: boolean }) {

@@ -16,6 +16,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/mystore" element={<StorePage />} />
+          <Route path="/mystore/product/:slug" element={<StorePage />} />
           <Route path="/mystore/admin" element={<StoreAdminPage />} />
           <Route path="*" element={<Layout><Routes>
             <Route path="/" element={<Navigate to="/navigation" replace />} />
