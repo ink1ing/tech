@@ -11,6 +11,8 @@ async function request(path, options = {}) {
 const catalog = await request('/api/catalog');
 assert(catalog.categories.length >= 4, 'catalog categories');
 assert(catalog.products.length >= 8, 'catalog products');
+const paymentConfig = await request('/api/payment-config');
+assert(paymentConfig.usdtOptions.length === 4, 'USDT network configuration');
 
 const order = await request('/api/orders', {
   method: 'POST',
@@ -22,12 +24,14 @@ const order = await request('/api/orders', {
     shippingAddress: 'Local test address',
     shippingPhone: '000-0000-0000',
     paymentMethod: 'usdt',
+    paymentNetwork: 'bsc',
     note: 'Automated local test; safe to delete',
   }),
 });
 assert(/^SS-\d{8}-[A-F0-9]{10}$/.test(order.orderNumber), 'safe order number');
 assert(order.totalCents === 32900, 'server-calculated total');
 assert(order.lookupKey.length >= 20, 'lookup key');
+assert(order.paymentNetwork === 'bsc', 'selected payment network');
 
 const payment = new FormData();
 payment.set('lookupKey', order.lookupKey);
@@ -36,6 +40,7 @@ await request(`/api/orders/${order.orderNumber}/payment`, { method: 'POST', body
 
 const lookup = await request(`/api/orders/${order.orderNumber}?key=${encodeURIComponent(order.lookupKey)}`);
 assert(lookup.order.payment_status === 'submitted', 'payment submission');
+assert(lookup.order.payment_network === 'bsc', 'lookup payment network');
 assert(!('id' in lookup.order), 'internal id is private');
 
 const login = await request('/api/admin/login', {
@@ -45,6 +50,7 @@ const adminHeaders = { 'content-type': 'application/json', authorization: `Beare
 const adminOrders = await request('/api/admin/orders', { headers: adminHeaders });
 const created = adminOrders.orders.find(item => item.order_number === order.orderNumber);
 assert(created, 'admin order listing');
+assert(created.payment_network === 'bsc', 'admin payment network');
 assert(!('lookup_hash' in created), 'lookup hash is private');
 
 await request(`/api/admin/orders/${order.orderNumber}`, {
@@ -60,4 +66,3 @@ console.log(`Store integration passed: ${order.orderNumber}`);
 function assert(value, label) {
   if (!value) throw new Error(`Assertion failed: ${label}`);
 }
-
