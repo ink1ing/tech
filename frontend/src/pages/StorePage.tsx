@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  ArrowLeft, BarChart3, BookOpen, Check, CheckCircle2, CreditCard, FileText, Hammer, Menu,
-  MessageCircle, Package, Receipt as ReceiptText, Search, Settings, ShoppingBag, Star, Trash2, X,
+  ArrowLeft, BarChart3, BookOpen, Check, CheckCircle2, CreditCard, FileText, Hammer, Menu, Moon,
+  MessageCircle, Package, Receipt as ReceiptText, Search, Settings, ShoppingBag, Star, Sun, Trash2, X,
 } from 'lucide-react';
 import { storeApi } from '../services/storeApi';
 import type { Category, LookupOrder, OrderReceipt, Product } from '../types/store';
@@ -59,6 +59,10 @@ export default function StorePage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('silas-store-theme');
+    return saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -69,6 +73,10 @@ export default function StorePage() {
     }).catch(err => setError(err.message)).finally(() => setLoading(false));
     return () => { document.title = previousTitle; };
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('silas-store-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
   const filteredProducts = useMemo(() => products.filter(product => {
     const matchesCategory = activeCategory === 'all' || product.category_slug === activeCategory;
@@ -128,7 +136,7 @@ export default function StorePage() {
   const chooseCategory = (slug: string) => { setActiveCategory(slug); setNavOpen(false); };
 
   return (
-    <div className="store-app">
+    <div className="store-app" data-theme={darkMode ? 'dark' : 'light'}>
       <aside className={`store-sidebar ${navOpen ? 'open' : ''}`} aria-label="商店导航">
         <a className="store-brand" href="/mystore"><span>S</span>Silas Store</a>
         <nav className="store-nav">
@@ -144,7 +152,7 @@ export default function StorePage() {
         <header className="store-topbar">
           <button className="store-icon-button mobile-only" aria-label="打开导航" onClick={() => setNavOpen(true)}><Menu size={20} /></button>
           <strong className="mobile-only">Silas Store</strong>
-          <div className="store-top-actions"><label className="store-top-search"><Search size={15} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索商品" /></label><button className="text-button" onClick={() => setLookupOpen(true)}>订单查询</button><button className="store-icon-button bag-button" aria-label="打开购物袋" onClick={() => setBagOpen(true)}><ShoppingBag size={19} /><span>{bag.length}</span></button></div>
+          <div className="store-top-actions"><label className="store-top-search"><Search size={15} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索商品" /></label><button className="text-button" onClick={() => setLookupOpen(true)}>订单查询</button><button className="store-icon-button theme-button" aria-label={darkMode ? '切换到浅色模式' : '切换到深色模式'} title={darkMode ? '浅色模式' : '深色模式'} onClick={() => setDarkMode(value => !value)}>{darkMode ? <Sun size={18} /> : <Moon size={18} />}</button><button className="store-icon-button bag-button" aria-label="打开购物袋" onClick={() => setBagOpen(true)}><ShoppingBag size={19} /><span>{bag.length}</span></button></div>
         </header>
 
         <div className="store-content">
