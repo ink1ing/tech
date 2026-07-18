@@ -25,7 +25,7 @@
 
 - D1 数据库：`silas-store`
 - R2 Bucket：`silas-store-payment-proofs`
-- Pages 项目：现有 `silas-tech`（如果线上名称不同，部署命令需同步修改）
+- Pages 项目：现有 `tech`
 
 创建 D1 后，把 `frontend/wrangler.toml` 中占位的 `database_id` 换成真实 ID。随后执行：
 
@@ -86,4 +86,3 @@ npm run test:store
 - 管理后台不要使用与其他网站相同的密码。
 - 定期导出 D1 订单数据备份。
 - 正式开放后为 `POST /api/orders` 和管理员登录添加 Cloudflare Rate Limiting 或 Turnstile。
-

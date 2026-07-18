@@ -12,7 +12,7 @@
     "db:migrate:local": "wrangler d1 migrations apply silas-store --local",
     "db:migrate:remote": "wrangler d1 migrations apply silas-store --remote",
     "test:store": "node scripts/store-integration.mjs",
-    "deploy:cf": "npm run build && wrangler pages deploy dist --project-name silas-tech",
+    "deploy:cf": "npm run build && wrangler pages deploy dist --project-name tech",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix"
   },
