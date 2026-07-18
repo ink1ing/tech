@@ -141,7 +141,7 @@ export default function StorePage() {
       <aside className={`store-sidebar ${navOpen ? 'open' : ''}`} aria-label="商店导航">
         <a className="store-brand" href="/mystore"><span>S</span>Silas Store</a>
         <nav className="store-nav">
-          <button className={activeCategory === 'all' ? 'active' : ''} onClick={() => chooseCategory('all')}><Star size={18} />发现</button>
+          <button className={activeCategory === 'all' ? 'active' : ''} onClick={() => chooseCategory('all')}><Star size={18} />作者精选</button>
           {categories.map(category => <button key={category.id} className={activeCategory === category.slug ? 'active' : ''} onClick={() => chooseCategory(category.slug)}><Package size={18} />{category.name}</button>)}
         </nav>
         <div className="store-health"><i />支付服务正常</div>
