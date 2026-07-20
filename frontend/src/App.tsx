@@ -11,6 +11,23 @@ import StorePage from './pages/StorePage';
 import StoreAdminPage from './pages/StoreAdminPage';
 
 function App() {
+  const isStoreHost = window.location.hostname.startsWith('store.');
+
+  if (isStoreHost) {
+    return (
+      <AppProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<StorePage />} />
+            <Route path="/product/:slug" element={<StorePage />} />
+            <Route path="/admin" element={<StoreAdminPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </AppProvider>
+    );
+  }
+
   return (
     <AppProvider>
       <Router>

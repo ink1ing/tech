@@ -39,6 +39,10 @@ const initialCheckout: CheckoutForm = {
 export default function StorePage() {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
+  const isStoreHost = window.location.hostname.startsWith('store.');
+  const storeHome = isStoreHost ? '/' : '/mystore';
+  const storeAdmin = isStoreHost ? '/admin' : '/mystore/admin';
+  const productPath = (productSlug: string) => `${isStoreHost ? '' : '/mystore'}/product/${productSlug}`;
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState('all');
@@ -139,7 +143,7 @@ export default function StorePage() {
   return (
     <div className="store-app" data-theme={darkMode ? 'dark' : 'light'}>
       <aside className={`store-sidebar ${navOpen ? 'open' : ''}`} aria-label="商店导航">
-        <a className="store-brand" href="/mystore"><span>S</span>Silas Store</a>
+        <a className="store-brand" href={storeHome}><span>S</span>Silas Store</a>
         <nav className="store-nav">
           <button className={activeCategory === 'all' ? 'active' : ''} onClick={() => chooseCategory('all')}><Star size={18} />作者精选</button>
           {categories.map(category => <button key={category.id} className={activeCategory === category.slug ? 'active' : ''} onClick={() => chooseCategory(category.slug)}><Package size={18} />{category.name}</button>)}
@@ -157,17 +161,17 @@ export default function StorePage() {
         </header>
 
         <div className="store-content">
-          {slug ? <ProductPageView product={detailProduct} products={products} loading={loading} onBack={() => navigate('/mystore')} onAdd={addToBag} onOpen={product => navigate(`/mystore/product/${product.slug}`)} /> : <>
+          {slug ? <ProductPageView product={detailProduct} products={products} loading={loading} onBack={() => navigate(storeHome)} onAdd={addToBag} onOpen={product => navigate(productPath(product.slug))} /> : <>
           <section className="store-intro"><p>为你的工作流精选</p><h1>数字服务，简单购买。</h1><div>无需注册账户。付款完成后，使用订单号随时查询处理进度。</div></section>
           <section className="store-catalog">
             <div className="catalog-heading"><div><small>精选</small><h2>值得入手</h2></div><div className="segmented" aria-label="商品类型">{[['all','全部'],['digital','非邮寄'],['shipping','需邮寄']].map(([value,label]) => <button key={value} className={fulfillmentFilter === value ? 'active' : ''} onClick={() => setFulfillmentFilter(value)}>{label}</button>)}</div></div>
             {loading && <div className="store-empty">正在载入商品…</div>}
             {!loading && filteredProducts.length === 0 && <div className="store-empty">没有找到相关商品</div>}
-            <div className={`store-product-grid ${gridColumns === 1 ? 'grid-one' : ''}`}>{filteredProducts.map(product => <ProductCard key={product.id} product={product} onOpen={() => navigate(`/mystore/product/${product.slug}`)} />)}</div>
+            <div className={`store-product-grid ${gridColumns === 1 ? 'grid-one' : ''}`}>{filteredProducts.map(product => <ProductCard key={product.id} product={product} onOpen={() => navigate(productPath(product.slug))} />)}</div>
           </section>
 
           <section className="store-trust"><div><CreditCard /><h3>灵活支付</h3><p>支持支付宝、微信与 USDT。</p></div><div><CheckCircle2 /><h3>付款可核验</h3><p>每笔订单均保留支付流水。</p></div><div><MessageCircle /><h3>处理有提醒</h3><p>付款后自动触发订单通知。</p></div></section>
-          <footer className="store-footer"><span>Copyright © 2026 Silas Store</span><a href="/navigation">返回主站</a><a href="/mystore/admin">管理员</a></footer>
+          <footer className="store-footer"><span>Copyright © 2026 Silas Store</span><a href={isStoreHost ? 'https://shangdian.me/navigation' : '/navigation'}>返回主站</a><a href={storeAdmin}>管理员</a></footer>
           </>}
         </div>
       </main>
