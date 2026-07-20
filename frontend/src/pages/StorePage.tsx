@@ -199,7 +199,7 @@ export default function StorePage() {
 function ProductCard({ product, onOpen }: { product: Product; onOpen: () => void }) {
   const Icon = iconMap[product.icon] || Package;
   const discount = discountLabel(product);
-  return <article className="store-product-card" onClick={onOpen} tabIndex={0} onKeyDown={event => event.key === 'Enter' && onOpen()}><div className={`product-icon tone-${product.sort_order % 4}`}><Icon /></div><div className="product-copy"><h3>{product.name}</h3><p>{product.subtitle}</p><div><span>{product.fulfillment === 'shipping' ? '需邮寄' : '非邮寄'}</span><span>{product.delivery_note}</span></div></div><div className="product-buy"><div className="product-price-line">{discount && <span>{discount}</span>}<strong>{money(product.price_cents)}</strong></div>{discount && <del>{money(product.original_price_cents)}</del>}<button onClick={event => { event.stopPropagation(); onOpen(); }}>获取</button></div></article>;
+  return <article className="store-product-card" onClick={onOpen} tabIndex={0} onKeyDown={event => event.key === 'Enter' && onOpen()}>{product.image_url ? <img className="product-image" src={product.image_url} alt="" /> : <div className={`product-icon tone-${product.sort_order % 4}`}><Icon /></div>}<div className="product-copy"><h3>{product.name}</h3><p>{product.subtitle}</p><div><span>{product.fulfillment === 'shipping' ? '需邮寄' : '非邮寄'}</span><span>{product.delivery_note}</span></div></div><div className="product-buy"><div className="product-price-line">{discount && <span>{discount}</span>}<strong>{money(product.price_cents)}</strong></div>{discount && <del>{money(product.original_price_cents)}</del>}<button onClick={event => { event.stopPropagation(); onOpen(); }}>获取</button></div></article>;
 }
 
 function Modal({ children, onClose, wide = false }: { children: React.ReactNode; onClose: () => void; wide?: boolean }) {
@@ -215,7 +215,7 @@ function ProductPageView({ product, products, loading, onBack, onAdd, onOpen }: 
   return <div className="product-page">
     <button className="back-button" onClick={onBack}><ArrowLeft size={17} />返回商品</button>
     <section className="product-hero">
-      <div className={`product-icon product-icon-hero tone-${product.sort_order % 4}`}><Icon /></div>
+      {product.image_url ? <img className="product-image product-image-hero" src={product.image_url} alt={product.name} /> : <div className={`product-icon product-icon-hero tone-${product.sort_order % 4}`}><Icon /></div>}
       <div className="product-hero-copy"><small>{product.category_name || product.category_slug || '精选商品'}</small><h1>{product.name}</h1><p>{product.subtitle}</p><div className="product-hero-price"><div className="product-hero-price-copy"><div>{discount && <span>{discount}</span>}<strong>{money(product.price_cents)}</strong></div>{discount && <del>{money(product.original_price_cents)}</del>}</div><button className="store-primary" onClick={() => onAdd(product)}>加入购物袋</button></div></div>
     </section>
     <div className="product-page-grid"><article className="product-description"><h2>关于此商品</h2><p>{product.description}</p></article><aside className="product-facts"><div><span>交付方式</span><strong>{product.fulfillment === 'shipping' ? '快递邮寄' : '线上交付'}</strong></div><div><span>预计时间</span><strong>{product.delivery_note}</strong></div><div><span>订单查询</span><strong>无需登录</strong></div></aside></div>

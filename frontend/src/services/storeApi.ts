@@ -1,4 +1,4 @@
-import type { Category, LookupOrder, OrderReceipt, OrderSummary, Product } from '../types/store';
+import type { Category, LookupOrder, OrderReceipt, OrderSummary, Product, ProductImage } from '../types/store';
 
 interface ApiErrorPayload { error?: { message?: string } }
 
@@ -30,12 +30,13 @@ export const storeApi = {
   }),
   getAdminData: async () => {
     const headers = authHeaders();
-    const [orders, products, categories] = await Promise.all([
+    const [orders, products, categories, images] = await Promise.all([
       request<{ orders: OrderSummary[] }>('/api/admin/orders', { headers }),
       request<{ products: Product[] }>('/api/admin/products', { headers }),
       request<{ categories: Category[] }>('/api/admin/categories', { headers }),
+      request<{ images: ProductImage[]; limit: number }>('/api/admin/images', { headers }),
     ]);
-    return { orders: orders.orders, products: products.products, categories: categories.categories };
+    return { orders: orders.orders, products: products.products, categories: categories.categories, images: images.images, imageLimit: images.limit };
   },
   updateOrder: (orderNumber: string, body: Record<string, unknown>) => request<{ ok: true }>(
     `/api/admin/orders/${encodeURIComponent(orderNumber)}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify(body) },
@@ -50,6 +51,7 @@ export const storeApi = {
       description: product.description,
       priceCents: product.price_cents,
       originalPriceCents: product.original_price_cents,
+      imageId: product.image_id,
       fulfillment: product.fulfillment,
       deliveryNote: product.delivery_note,
       icon: product.icon,
@@ -59,6 +61,19 @@ export const storeApi = {
   ),
   createCategory: (body: Record<string, unknown>) => request<{ id: string }>('/api/admin/categories', {
     method: 'POST', headers: authHeaders(), body: JSON.stringify(body),
+  }),
+  uploadProductImage: async (file: File) => {
+    const form = new FormData();
+    form.set('image', file);
+    return request<{ image: ProductImage }>('/api/admin/images', {
+      method: 'POST', headers: { authorization: authHeaders().authorization }, body: form,
+    });
+  },
+  deleteProductImage: (id: string) => request<{ ok: true }>(`/api/admin/images/${encodeURIComponent(id)}`, {
+    method: 'DELETE', headers: authHeaders(),
+  }),
+  updateImageLimit: (limit: number) => request<{ ok: true; limit: number }>('/api/admin/image-settings', {
+    method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ limit }),
   }),
   updateCategory: (category: Category) => request<{ ok: true }>(`/api/admin/categories/${encodeURIComponent(category.id)}`, {
     method: 'PATCH', headers: authHeaders(), body: JSON.stringify({

@@ -9,9 +9,9 @@ export async function onRequestPatch({ request, env, params }: PagesContext) {
   const product = normalize(body);
   if ('error' in product) return fail(product.error);
   await env.DB.prepare(`UPDATE products SET category_id = ?, slug = ?, name = ?, subtitle = ?, description = ?,
-    price_cents = ?, original_price_cents = ?, fulfillment = ?, delivery_note = ?, icon = ?, sort_order = ?, active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
+    price_cents = ?, original_price_cents = ?, image_id = ?, fulfillment = ?, delivery_note = ?, icon = ?, sort_order = ?, active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
     .bind(product.categoryId, product.slug, product.name, product.subtitle, product.description, product.priceCents,
-      product.originalPriceCents, product.fulfillment, product.deliveryNote, product.icon, product.sortOrder, body.active === false ? 0 : 1, params.id).run();
+      product.originalPriceCents, product.imageId, product.fulfillment, product.deliveryNote, product.icon, product.sortOrder, body.active === false ? 0 : 1, params.id).run();
   return json({ ok: true });
 }
 

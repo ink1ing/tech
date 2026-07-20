@@ -10,6 +10,7 @@ interface ProductInput {
   description?: string;
   priceCents?: number;
   originalPriceCents?: number;
+  imageId?: string;
   fulfillment?: string;
   deliveryNote?: string;
   icon?: string;
@@ -18,7 +19,8 @@ interface ProductInput {
 
 export async function onRequestGet({ request, env }: PagesContext) {
   if (!await isAdmin(request, env)) return fail('请先登录管理员后台', 401, 'UNAUTHORIZED');
-  const result = await env.DB.prepare(`SELECT p.*, c.name AS category_name FROM products p
+  const result = await env.DB.prepare(`SELECT p.*, c.name AS category_name,
+    CASE WHEN p.image_id != '' THEN '/api/product-images/' || p.image_id ELSE '' END AS image_url FROM products p
     JOIN categories c ON c.id = p.category_id ORDER BY p.sort_order, p.name`).all();
   return json({ products: result.results });
 }
@@ -30,10 +32,10 @@ export async function onRequestPost({ request, env }: PagesContext) {
   if ('error' in product) return fail(product.error);
   const id = `prod-${crypto.randomUUID()}`;
   await env.DB.prepare(`INSERT INTO products
-    (id, category_id, slug, name, subtitle, description, price_cents, original_price_cents, fulfillment, delivery_note, icon, sort_order)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    (id, category_id, slug, name, subtitle, description, price_cents, original_price_cents, image_id, fulfillment, delivery_note, icon, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
     .bind(id, product.categoryId, product.slug, product.name, product.subtitle, product.description,
-      product.priceCents, product.originalPriceCents, product.fulfillment, product.deliveryNote, product.icon, product.sortOrder).run();
+      product.priceCents, product.originalPriceCents, product.imageId, product.fulfillment, product.deliveryNote, product.icon, product.sortOrder).run();
   return json({ id }, 201);
 }
 
@@ -50,6 +52,7 @@ export function normalize(body: ProductInput) {
   if (!['digital', 'shipping'].includes(fulfillment)) return { error: '交付方式不正确' };
   return {
     categoryId, slug, name, priceCents, originalPriceCents, fulfillment,
+    imageId: cleanText(body.imageId, 100),
     subtitle: cleanText(body.subtitle, 200),
     description: cleanText(body.description, 3000),
     deliveryNote: cleanText(body.deliveryNote, 100),

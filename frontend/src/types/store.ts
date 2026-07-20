@@ -18,11 +18,23 @@ export interface Product {
   description: string;
   price_cents: number;
   original_price_cents: number;
+  image_id: string;
+  image_url?: string;
   fulfillment: 'digital' | 'shipping';
   delivery_note: string;
   icon: string;
   sort_order: number;
   active?: number;
+}
+
+export interface ProductImage {
+  id: string;
+  file_name: string;
+  content_type: string;
+  size_bytes: number;
+  created_at: string;
+  url: string;
+  usage_count?: number;
 }
 
 export interface PaymentConfig {
