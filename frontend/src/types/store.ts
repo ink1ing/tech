@@ -20,6 +20,7 @@ export interface Product {
   original_price_cents: number;
   image_id: string;
   image_url?: string;
+  description_images?: ProductImage[];
   fulfillment: 'digital' | 'shipping';
   delivery_note: string;
   icon: string;

@@ -8,8 +8,9 @@ export async function onRequestGet({ request, env }: PagesContext) {
   if (!await isAdmin(request, env)) return fail('请先登录管理员后台', 401, 'UNAUTHORIZED');
   const [result, setting] = await Promise.all([
     env.DB.prepare(`SELECT i.id, i.file_name, i.content_type, i.size_bytes, i.created_at,
-      COUNT(p.id) AS usage_count FROM product_images i LEFT JOIN products p ON p.image_id = i.id
-      GROUP BY i.id ORDER BY i.created_at DESC`).all(),
+      (SELECT COUNT(*) FROM products p WHERE p.image_id = i.id) +
+      (SELECT COUNT(*) FROM product_description_images d WHERE d.image_id = i.id) AS usage_count
+      FROM product_images i ORDER BY i.created_at DESC`).all(),
     env.DB.prepare("SELECT value FROM store_settings WHERE key = 'image_library_limit'").first(),
   ]);
   const images = result.results.map((image: any) => ({ ...image, url: `/api/product-images/${image.id}` }));

@@ -20,6 +20,7 @@ function App() {
           <Routes>
             <Route path="/" element={<StorePage />} />
             <Route path="/product/:slug" element={<StorePage />} />
+            <Route path="/checkout/:slug" element={<StorePage />} />
             <Route path="/admin" element={<StoreAdminPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
@@ -34,6 +35,7 @@ function App() {
         <Routes>
           <Route path="/mystore" element={<StorePage />} />
           <Route path="/mystore/product/:slug" element={<StorePage />} />
+          <Route path="/mystore/checkout/:slug" element={<StorePage />} />
           <Route path="/mystore/admin" element={<StoreAdminPage />} />
           <Route path="*" element={<Layout><Routes>
             <Route path="/" element={<Navigate to="/navigation" replace />} />

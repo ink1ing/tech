@@ -52,6 +52,7 @@ export const storeApi = {
       priceCents: product.price_cents,
       originalPriceCents: product.original_price_cents,
       imageId: product.image_id,
+      descriptionImageIds: (product.description_images || []).map(image => image.id),
       fulfillment: product.fulfillment,
       deliveryNote: product.delivery_note,
       icon: product.icon,

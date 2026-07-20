@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
-  ArrowLeft, BarChart3, BookOpen, Check, CheckCircle2, CreditCard, FileText, Hammer, Menu, Moon,
-  MessageCircle, Package, Receipt as ReceiptText, Search, Settings, ShoppingBag, Star, Sun, Trash2, X,
+  ArrowLeft, BarChart3, BookOpen, Check, CheckCircle2, CreditCard, Download, FileText, Hammer, Menu, Moon,
+  MessageCircle, Package, Receipt as ReceiptText, Search, Send, Settings, ShoppingBag, Star, Sun, Trash2, X, ZoomIn,
 } from 'lucide-react';
 import { storeApi } from '../services/storeApi';
-import type { Category, LookupOrder, OrderReceipt, Product } from '../types/store';
+import type { Category, LookupOrder, OrderReceipt, Product, ProductImage } from '../types/store';
 import '../styles/store.css';
 
 const iconMap: Record<string, typeof Package> = {
@@ -42,11 +42,14 @@ const initialCheckout: CheckoutForm = {
 
 export default function StorePage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { slug } = useParams<{ slug?: string }>();
   const isStoreHost = window.location.hostname.startsWith('store.');
   const storeHome = isStoreHost ? '/' : '/mystore';
   const storeAdmin = isStoreHost ? '/admin' : '/mystore/admin';
   const productPath = (productSlug: string) => `${isStoreHost ? '' : '/mystore'}/product/${productSlug}`;
+  const checkoutPath = (productSlug: string) => `${isStoreHost ? '' : '/mystore'}/checkout/${productSlug}`;
+  const isCheckoutPage = location.pathname.includes('/checkout/');
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState('all');
@@ -61,6 +64,7 @@ export default function StorePage() {
   const [receipt, setReceipt] = useState<OrderReceipt | null>(null);
   const [paymentReference, setPaymentReference] = useState('');
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
+  const [paymentSubmitted, setPaymentSubmitted] = useState(false);
   const [lookup, setLookup] = useState({ orderNumber: '', lookupKey: '' });
   const [lookupResult, setLookupResult] = useState<LookupOrder | null>(null);
   const [loading, setLoading] = useState(true);
@@ -100,16 +104,11 @@ export default function StorePage() {
   const detailProduct = slug ? products.find(product => product.slug === slug) ?? null : null;
   const gridColumns = activeCategory === 'all' ? 2 : (categories.find(category => category.slug === activeCategory)?.grid_columns || 2);
 
-  const addToBag = (product: Product) => {
-    setBag(current => current.includes(product.id) ? current : [...current, product.id]);
-    setNotice('已加入购物袋');
-  };
-
   const createOrder = async (event: React.FormEvent) => {
     event.preventDefault();
     setBusy(true); setError('');
     try {
-      const result = await storeApi.createOrder({ ...checkout, productIds: bag });
+      const result = await storeApi.createOrder({ ...checkout, productIds: isCheckoutPage && detailProduct ? [detailProduct.id] : bag });
       setReceipt(result);
       localStorage.setItem(`silas-store-${result.orderNumber}`, result.lookupKey);
     } catch (err) { setError((err as Error).message); }
@@ -127,10 +126,10 @@ export default function StorePage() {
     try {
       await storeApi.submitPayment(receipt.orderNumber, form);
       setNotice('付款资料已提交，我们会尽快核验');
-      setCheckoutOpen(false); setBag([]);
       setLookup({ orderNumber: receipt.orderNumber, lookupKey: receipt.lookupKey });
-      setReceipt(null); setPaymentReference(''); setPaymentProof(null);
-      setLookupOpen(true);
+      setPaymentReference(''); setPaymentProof(null);
+      if (isCheckoutPage) setPaymentSubmitted(true);
+      else { setCheckoutOpen(false); setBag([]); setReceipt(null); setLookupOpen(true); }
     } catch (err) { setError((err as Error).message); }
     finally { setBusy(false); }
   };
@@ -165,7 +164,7 @@ export default function StorePage() {
         </header>
 
         <div className="store-content">
-          {slug ? <ProductPageView product={detailProduct} products={products} loading={loading} onBack={() => navigate(storeHome)} onAdd={addToBag} onOpen={product => navigate(productPath(product.slug))} /> : <>
+          {isCheckoutPage ? <QuickPurchasePage product={detailProduct} loading={loading} form={checkout} setForm={setCheckout} receipt={receipt} submitted={paymentSubmitted} paymentReference={paymentReference} setPaymentReference={setPaymentReference} setPaymentProof={setPaymentProof} onCreate={createOrder} onPayment={submitPayment} onBack={() => navigate(detailProduct ? productPath(detailProduct.slug) : storeHome)} busy={busy} /> : slug ? <ProductPageView product={detailProduct} products={products} loading={loading} onBack={() => navigate(storeHome)} onBuy={product => navigate(checkoutPath(product.slug))} onOpen={product => navigate(productPath(product.slug))} /> : <>
           <section className="store-intro"><p>为你的工作流精选</p><h1>数字服务，简单购买。</h1><div>无需注册账户。付款完成后，使用订单号随时查询处理进度。</div></section>
           <section className="store-catalog">
             <div className="catalog-heading"><div><small>精选</small><h2>值得入手</h2></div><div className="segmented" aria-label="商品类型">{[['all','全部'],['digital','非邮寄'],['shipping','需邮寄']].map(([value,label]) => <button key={value} className={fulfillmentFilter === value ? 'active' : ''} onClick={() => setFulfillmentFilter(value)}>{label}</button>)}</div></div>
@@ -206,7 +205,8 @@ function Modal({ children, onClose, wide = false }: { children: React.ReactNode;
   return <div className="store-modal-layer" role="presentation"><section className={`store-modal ${wide ? 'wide' : ''}`} role="dialog" aria-modal="true"><button className="store-icon-button modal-close" aria-label="关闭" onClick={onClose}><X /></button>{children}</section></div>;
 }
 
-function ProductPageView({ product, products, loading, onBack, onAdd, onOpen }: { product: Product | null; products: Product[]; loading: boolean; onBack: () => void; onAdd: (product: Product) => void; onOpen: (product: Product) => void }) {
+function ProductPageView({ product, products, loading, onBack, onBuy, onOpen }: { product: Product | null; products: Product[]; loading: boolean; onBack: () => void; onBuy: (product: Product) => void; onOpen: (product: Product) => void }) {
+  const [previewImage, setPreviewImage] = useState<ProductImage | null>(null);
   if (loading) return <div className="product-page"><div className="store-empty">正在载入商品…</div></div>;
   if (!product) return <div className="product-page"><button className="back-button" onClick={onBack}><ArrowLeft size={17} />返回商品</button><div className="store-empty"><Package /><h3>商品不存在</h3><p>该商品可能已下架或链接已失效。</p></div></div>;
   const Icon = iconMap[product.icon] || Package;
@@ -216,11 +216,24 @@ function ProductPageView({ product, products, loading, onBack, onAdd, onOpen }: 
     <button className="back-button" onClick={onBack}><ArrowLeft size={17} />返回商品</button>
     <section className="product-hero">
       {product.image_url ? <img className="product-image product-image-hero" src={product.image_url} alt={product.name} /> : <div className={`product-icon product-icon-hero tone-${product.sort_order % 4}`}><Icon /></div>}
-      <div className="product-hero-copy"><small>{product.category_name || product.category_slug || '精选商品'}</small><h1>{product.name}</h1><p>{product.subtitle}</p><div className="product-hero-price"><div className="product-hero-price-copy"><div>{discount && <span>{discount}</span>}<strong>{money(product.price_cents)}</strong></div>{discount && <del>{money(product.original_price_cents)}</del>}</div><button className="store-primary" onClick={() => onAdd(product)}>加入购物袋</button></div></div>
+      <div className="product-hero-copy"><small>{product.category_name || product.category_slug || '精选商品'}</small><h1>{product.name}</h1><p>{product.subtitle}</p><div className="product-hero-price"><div className="product-hero-price-copy"><div>{discount && <span>{discount}</span>}<strong>{money(product.price_cents)}</strong></div>{discount && <del>{money(product.original_price_cents)}</del>}</div><button className="store-primary" onClick={() => onBuy(product)}>购买</button></div></div>
     </section>
     <div className="product-page-grid"><article className="product-description"><h2>关于此商品</h2><p>{product.description}</p></article><aside className="product-facts"><div><span>交付方式</span><strong>{product.fulfillment === 'shipping' ? '快递邮寄' : '线上交付'}</strong></div><div><span>预计时间</span><strong>{product.delivery_note}</strong></div><div><span>订单查询</span><strong>无需登录</strong></div></aside></div>
+    {!!product.description_images?.length && <section className="product-gallery"><div className="catalog-heading"><div><small>商品展示</small><h2>详细图片</h2></div></div><div>{product.description_images.map(image => <button key={image.id} onClick={() => setPreviewImage(image)}><img src={image.url} alt={image.file_name} /><span><ZoomIn size={15} /> 查看大图</span></button>)}</div></section>}
     {related.length > 0 && <section className="related-products"><div className="catalog-heading"><div><small>更多选择</small><h2>同类商品</h2></div></div><div className="store-product-grid">{related.map(item => <ProductCard key={item.id} product={item} onOpen={() => onOpen(item)} />)}</div></section>}
+    {previewImage && <div className="image-lightbox" role="dialog" aria-modal="true"><button className="store-icon-button" aria-label="关闭" onClick={() => setPreviewImage(null)}><X /></button><img src={previewImage.url} alt={previewImage.file_name} /><a href={previewImage.url} download={previewImage.file_name}><Download size={17} /> 保存图片</a></div>}
   </div>;
+}
+
+function QuickPurchasePage(props: { product: Product | null; loading: boolean; form: CheckoutForm; setForm: React.Dispatch<React.SetStateAction<CheckoutForm>>; receipt: OrderReceipt | null; submitted: boolean; paymentReference: string; setPaymentReference: (value: string) => void; setPaymentProof: (file: File | null) => void; onCreate: (event: React.FormEvent) => void; onPayment: (event: React.FormEvent) => void; onBack: () => void; busy: boolean }) {
+  if (props.loading) return <div className="quick-purchase-page"><div className="store-empty">正在载入商品…</div></div>;
+  if (!props.product) return <div className="quick-purchase-page"><button className="back-button" onClick={props.onBack}><ArrowLeft size={17} />返回商店</button><div className="store-empty">商品不存在或已下架</div></div>;
+  if (props.submitted && props.receipt) return <PurchaseComplete receipt={props.receipt} />;
+  return <div className="quick-purchase-page"><button className="back-button" onClick={props.onBack}><ArrowLeft size={17} />返回商品</button><div className="quick-purchase-heading"><small>立即购买</small><h1>{props.product.name}</h1><p>选择支付方式，创建订单后完成付款并提交流水。</p></div><CheckoutContent form={props.form} setForm={props.setForm} needsShipping={props.product.fulfillment === 'shipping'} products={[props.product]} total={props.product.price_cents} receipt={props.receipt} paymentReference={props.paymentReference} setPaymentReference={props.setPaymentReference} setPaymentProof={props.setPaymentProof} onCreate={props.onCreate} onPayment={props.onPayment} busy={props.busy} /></div>;
+}
+
+function PurchaseComplete({ receipt }: { receipt: OrderReceipt }) {
+  return <section className="purchase-complete"><CheckCircle2 /><small>付款资料已提交</small><h1>请保留消费凭证</h1><p>这是非自动发货商品。付款核验与后续交付需要人工处理，请联系客服。</p><div className="order-credentials"><div><span>订单号</span><strong>{receipt.orderNumber}</strong></div><div><span>查询密钥</span><strong>{receipt.lookupKey}</strong></div><p>请截图或妥善保存订单号、查询密钥和付款凭证。</p></div><a className="store-primary telegram-contact" href="https://t.me/inkxbt" target="_blank" rel="noreferrer"><Send size={17} /> Telegram：@inkxbt</a></section>;
 }
 
 function CheckoutContent(props: { form: CheckoutForm; setForm: React.Dispatch<React.SetStateAction<CheckoutForm>>; needsShipping: boolean; products: Product[]; total: number; receipt: OrderReceipt | null; paymentReference: string; setPaymentReference: (value: string) => void; setPaymentProof: (file: File | null) => void; onCreate: (event: React.FormEvent) => void; onPayment: (event: React.FormEvent) => void; busy: boolean }) {
