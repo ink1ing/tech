@@ -13,6 +13,10 @@ const iconMap: Record<string, typeof Package> = {
 };
 
 const money = (cents: number) => `¥${(cents / 100).toLocaleString('zh-CN', { minimumFractionDigits: cents % 100 ? 2 : 0 })}`;
+const discountLabel = (product: Product) => {
+  if (!product.original_price_cents || product.original_price_cents <= product.price_cents) return '';
+  return `${Number(((product.price_cents / product.original_price_cents) * 10).toFixed(1))}折`;
+};
 const paymentNames: Record<string, string> = { alipay: '支付宝', wechat: '微信支付', usdt: 'USDT' };
 const usdtNetworks = [
   { id: 'xlayer', name: 'X Layer' },
@@ -93,7 +97,7 @@ export default function StorePage() {
   const bagProducts = bag.map(id => products.find(product => product.id === id)).filter(Boolean) as Product[];
   const bagTotal = bagProducts.reduce((sum, product) => sum + product.price_cents, 0);
   const needsShipping = bagProducts.some(product => product.fulfillment === 'shipping');
-  const detailProduct = slug ? products.find(product => product.slug === slug) : null;
+  const detailProduct = slug ? products.find(product => product.slug === slug) ?? null : null;
   const gridColumns = activeCategory === 'all' ? 2 : (categories.find(category => category.slug === activeCategory)?.grid_columns || 2);
 
   const addToBag = (product: Product) => {
@@ -194,7 +198,8 @@ export default function StorePage() {
 
 function ProductCard({ product, onOpen }: { product: Product; onOpen: () => void }) {
   const Icon = iconMap[product.icon] || Package;
-  return <article className="store-product-card" onClick={onOpen} tabIndex={0} onKeyDown={event => event.key === 'Enter' && onOpen()}><div className={`product-icon tone-${product.sort_order % 4}`}><Icon /></div><div className="product-copy"><h3>{product.name}</h3><p>{product.subtitle}</p><div><span>{product.fulfillment === 'shipping' ? '需邮寄' : '非邮寄'}</span><span>{product.delivery_note}</span></div></div><div className="product-buy"><strong>{money(product.price_cents)}</strong><button onClick={event => { event.stopPropagation(); onOpen(); }}>获取</button></div></article>;
+  const discount = discountLabel(product);
+  return <article className="store-product-card" onClick={onOpen} tabIndex={0} onKeyDown={event => event.key === 'Enter' && onOpen()}><div className={`product-icon tone-${product.sort_order % 4}`}><Icon /></div><div className="product-copy"><h3>{product.name}</h3><p>{product.subtitle}</p><div><span>{product.fulfillment === 'shipping' ? '需邮寄' : '非邮寄'}</span><span>{product.delivery_note}</span></div></div><div className="product-buy"><div className="product-price-line">{discount && <span>{discount}</span>}<strong>{money(product.price_cents)}</strong></div>{discount && <del>{money(product.original_price_cents)}</del>}<button onClick={event => { event.stopPropagation(); onOpen(); }}>获取</button></div></article>;
 }
 
 function Modal({ children, onClose, wide = false }: { children: React.ReactNode; onClose: () => void; wide?: boolean }) {
@@ -205,12 +210,13 @@ function ProductPageView({ product, products, loading, onBack, onAdd, onOpen }: 
   if (loading) return <div className="product-page"><div className="store-empty">正在载入商品…</div></div>;
   if (!product) return <div className="product-page"><button className="back-button" onClick={onBack}><ArrowLeft size={17} />返回商品</button><div className="store-empty"><Package /><h3>商品不存在</h3><p>该商品可能已下架或链接已失效。</p></div></div>;
   const Icon = iconMap[product.icon] || Package;
+  const discount = discountLabel(product);
   const related = products.filter(item => item.id !== product.id && item.category_slug === product.category_slug).slice(0, 3);
   return <div className="product-page">
     <button className="back-button" onClick={onBack}><ArrowLeft size={17} />返回商品</button>
     <section className="product-hero">
       <div className={`product-icon product-icon-hero tone-${product.sort_order % 4}`}><Icon /></div>
-      <div className="product-hero-copy"><small>{product.category_name || product.category_slug || '精选商品'}</small><h1>{product.name}</h1><p>{product.subtitle}</p><div className="product-hero-price"><strong>{money(product.price_cents)}</strong><button className="store-primary" onClick={() => onAdd(product)}>加入购物袋</button></div></div>
+      <div className="product-hero-copy"><small>{product.category_name || product.category_slug || '精选商品'}</small><h1>{product.name}</h1><p>{product.subtitle}</p><div className="product-hero-price"><div className="product-hero-price-copy"><div>{discount && <span>{discount}</span>}<strong>{money(product.price_cents)}</strong></div>{discount && <del>{money(product.original_price_cents)}</del>}</div><button className="store-primary" onClick={() => onAdd(product)}>加入购物袋</button></div></div>
     </section>
     <div className="product-page-grid"><article className="product-description"><h2>关于此商品</h2><p>{product.description}</p></article><aside className="product-facts"><div><span>交付方式</span><strong>{product.fulfillment === 'shipping' ? '快递邮寄' : '线上交付'}</strong></div><div><span>预计时间</span><strong>{product.delivery_note}</strong></div><div><span>订单查询</span><strong>无需登录</strong></div></aside></div>
     {related.length > 0 && <section className="related-products"><div className="catalog-heading"><div><small>更多选择</small><h2>同类商品</h2></div></div><div className="store-product-grid">{related.map(item => <ProductCard key={item.id} product={item} onOpen={() => onOpen(item)} />)}</div></section>}

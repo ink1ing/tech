@@ -49,6 +49,7 @@ export const storeApi = {
       subtitle: product.subtitle,
       description: product.description,
       priceCents: product.price_cents,
+      originalPriceCents: product.original_price_cents,
       fulfillment: product.fulfillment,
       deliveryNote: product.delivery_note,
       icon: product.icon,

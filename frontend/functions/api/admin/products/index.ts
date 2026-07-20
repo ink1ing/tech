@@ -9,6 +9,7 @@ interface ProductInput {
   subtitle?: string;
   description?: string;
   priceCents?: number;
+  originalPriceCents?: number;
   fulfillment?: string;
   deliveryNote?: string;
   icon?: string;
@@ -29,10 +30,10 @@ export async function onRequestPost({ request, env }: PagesContext) {
   if ('error' in product) return fail(product.error);
   const id = `prod-${crypto.randomUUID()}`;
   await env.DB.prepare(`INSERT INTO products
-    (id, category_id, slug, name, subtitle, description, price_cents, fulfillment, delivery_note, icon, sort_order)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    (id, category_id, slug, name, subtitle, description, price_cents, original_price_cents, fulfillment, delivery_note, icon, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
     .bind(id, product.categoryId, product.slug, product.name, product.subtitle, product.description,
-      product.priceCents, product.fulfillment, product.deliveryNote, product.icon, product.sortOrder).run();
+      product.priceCents, product.originalPriceCents, product.fulfillment, product.deliveryNote, product.icon, product.sortOrder).run();
   return json({ id }, 201);
 }
 
@@ -41,12 +42,14 @@ export function normalize(body: ProductInput) {
   const slug = cleanText(body.slug, 100).toLowerCase().replace(/[^a-z0-9-]/g, '-');
   const name = cleanText(body.name, 120);
   const priceCents = Math.round(Number(body.priceCents));
+  const originalPriceCents = Math.round(Number(body.originalPriceCents) || 0);
   const fulfillment = cleanText(body.fulfillment, 20);
   if (!categoryId || !slug || !name) return { error: '分类、商品名称和标识不能为空' };
   if (!Number.isFinite(priceCents) || priceCents < 0) return { error: '商品价格不正确' };
+  if (!Number.isFinite(originalPriceCents) || originalPriceCents < 0) return { error: '商品原价不正确' };
   if (!['digital', 'shipping'].includes(fulfillment)) return { error: '交付方式不正确' };
   return {
-    categoryId, slug, name, priceCents, fulfillment,
+    categoryId, slug, name, priceCents, originalPriceCents, fulfillment,
     subtitle: cleanText(body.subtitle, 200),
     description: cleanText(body.description, 3000),
     deliveryNote: cleanText(body.deliveryNote, 100),
@@ -54,4 +57,3 @@ export function normalize(body: ProductInput) {
     sortOrder: Number(body.sortOrder) || 0,
   };
 }
-

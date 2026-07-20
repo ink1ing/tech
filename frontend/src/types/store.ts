@@ -17,6 +17,7 @@ export interface Product {
   subtitle: string;
   description: string;
   price_cents: number;
+  original_price_cents: number;
   fulfillment: 'digital' | 'shipping';
   delivery_note: string;
   icon: string;
