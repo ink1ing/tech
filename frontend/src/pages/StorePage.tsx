@@ -80,8 +80,11 @@ export default function StorePage() {
     const previousTitle = document.title;
     document.title = 'Silas Store';
     storeApi.getCatalog().then(data => {
-      setCategories(data.categories);
-      setProducts(data.products);
+      setCategories(data.categories || []);
+      setProducts((data.products || []).map(product => ({
+        ...product,
+        description_images: product.description_images || [],
+      })));
     }).catch(err => setError(err.message)).finally(() => setLoading(false));
     return () => { document.title = previousTitle; };
   }, []);

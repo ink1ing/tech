@@ -15,7 +15,13 @@ const authHeaders = () => ({
 });
 
 export const storeApi = {
-  getCatalog: () => request<{ categories: Category[]; products: Product[] }>('/api/catalog'),
+  getCatalog: async () => {
+    const catalog = await request<{ categories?: Category[]; products?: Product[] }>('/api/catalog');
+    if (!Array.isArray(catalog.categories) || !Array.isArray(catalog.products)) {
+      throw new Error('商品目录暂时无法载入，请稍后重试');
+    }
+    return { categories: catalog.categories, products: catalog.products };
+  },
   createOrder: (body: Record<string, unknown>) => request<OrderReceipt>('/api/orders', {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
   }),
