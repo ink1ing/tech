@@ -84,7 +84,7 @@ export const storeApi = {
   }),
   updateCategory: (category: Category) => request<{ ok: true }>(`/api/admin/categories/${encodeURIComponent(category.id)}`, {
     method: 'PATCH', headers: authHeaders(), body: JSON.stringify({
-      name: category.name, active: category.active !== 0, sortOrder: category.sort_order, gridColumns: category.grid_columns === 1 ? 1 : 2,
+      name: category.name, slug: category.slug, active: category.active !== 0, sortOrder: category.sort_order, gridColumns: category.grid_columns === 1 ? 1 : 2,
     }),
   }),
   fetchProof: async (orderNumber: string) => {

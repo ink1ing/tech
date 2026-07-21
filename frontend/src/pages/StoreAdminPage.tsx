@@ -73,6 +73,7 @@ export default function StoreAdminPage() {
   const [imageLimit, setImageLimit] = useState(10);
   const [selectedOrder, setSelectedOrder] = useState<OrderSummary | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const productEditorRef = useRef<HTMLDivElement>(null);
   const [newCategory, setNewCategory] = useState({
     name: "",
@@ -253,6 +254,21 @@ export default function StoreAdminPage() {
     }
   };
 
+  const saveCategory = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!editingCategory) return;
+    setBusy(true);
+    setError("");
+    try {
+      await storeApi.updateCategory(editingCategory);
+      setEditingCategory(null);
+      await loadData();
+    } catch (err) {
+      setError((err as Error).message);
+      setBusy(false);
+    }
+  };
+
   const uploadProductImage = async (file: File) => {
     setBusy(true);
     setError("");
@@ -408,7 +424,10 @@ export default function StoreAdminPage() {
                 onClick={() =>
                   setEditingProduct({
                     ...emptyProduct,
-                    category_id: categories[0]?.id || "",
+                    category_id:
+                      productCategory !== "all"
+                        ? productCategory
+                        : categories[0]?.id || "",
                   })
                 }
               >
@@ -719,6 +738,12 @@ export default function StoreAdminPage() {
                       <td>
                         <button
                           className="admin-secondary"
+                          onClick={() => setEditingCategory({ ...category })}
+                        >
+                          编辑
+                        </button>{" "}
+                        <button
+                          className="admin-secondary"
                           onClick={async (event) => {
                             event.stopPropagation();
                             await storeApi.updateCategory({
@@ -736,6 +761,76 @@ export default function StoreAdminPage() {
                 </tbody>
               </table>
             </div>
+            {editingCategory && (
+              <form className="admin-panel" onSubmit={saveCategory}>
+                <h3>编辑分类</h3>
+                <div className="admin-form-grid">
+                  <label className="admin-field">
+                    名称
+                    <input
+                      required
+                      value={editingCategory.name}
+                      onChange={(event) =>
+                        setEditingCategory({ ...editingCategory, name: event.target.value })
+                      }
+                    />
+                  </label>
+                  <label className="admin-field">
+                    英文标识
+                    <input
+                      required
+                      pattern="[a-z0-9-]+"
+                      value={editingCategory.slug}
+                      onChange={(event) =>
+                        setEditingCategory({ ...editingCategory, slug: event.target.value })
+                      }
+                    />
+                  </label>
+                  <label className="admin-field">
+                    排序
+                    <input
+                      type="number"
+                      value={editingCategory.sort_order}
+                      onChange={(event) =>
+                        setEditingCategory({ ...editingCategory, sort_order: Number(event.target.value) })
+                      }
+                    />
+                  </label>
+                  <label className="admin-field">
+                    每行商品数
+                    <select
+                      value={editingCategory.grid_columns || 2}
+                      onChange={(event) =>
+                        setEditingCategory({ ...editingCategory, grid_columns: Number(event.target.value) === 1 ? 1 : 2 })
+                      }
+                    >
+                      <option value={1}>每行一个</option>
+                      <option value={2}>每行两个</option>
+                    </select>
+                  </label>
+                  <label className="admin-field">
+                    状态
+                    <select
+                      value={editingCategory.active === 0 ? 0 : 1}
+                      onChange={(event) =>
+                        setEditingCategory({ ...editingCategory, active: Number(event.target.value) })
+                      }
+                    >
+                      <option value={1}>启用</option>
+                      <option value={0}>停用</option>
+                    </select>
+                  </label>
+                </div>
+                <div className="admin-form-actions">
+                  <button type="button" className="admin-secondary" onClick={() => setEditingCategory(null)}>
+                    取消
+                  </button>
+                  <button className="store-primary" disabled={busy}>
+                    <Save size={15} /> 保存分类
+                  </button>
+                </div>
+              </form>
+            )}
             <form className="admin-panel" onSubmit={createCategory}>
               <h3>新增分类</h3>
               <div className="admin-form-grid">
