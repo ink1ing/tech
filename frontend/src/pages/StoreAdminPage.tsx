@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ExternalLink,
   Image,
@@ -73,6 +73,7 @@ export default function StoreAdminPage() {
   const [imageLimit, setImageLimit] = useState(10);
   const [selectedOrder, setSelectedOrder] = useState<OrderSummary | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const productEditorRef = useRef<HTMLDivElement>(null);
   const [newCategory, setNewCategory] = useState({
     name: "",
     slug: "",
@@ -173,6 +174,14 @@ export default function StoreAdminPage() {
       }),
     [products, productSearch, productCategory, productFulfillment],
   );
+
+  const editingProductKey = editingProduct ? editingProduct.id || "new" : "";
+  useEffect(() => {
+    if (!editingProductKey) return;
+    requestAnimationFrame(() => {
+      productEditorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [editingProductKey]);
 
   const saveOrder = async () => {
     if (!selectedOrder) return;
@@ -662,8 +671,9 @@ export default function StoreAdminPage() {
               <div className="admin-empty">没有符合条件的商品</div>
             )}
             {editingProduct && (
-              <>
+              <div className="admin-product-editor-stack" ref={productEditorRef}>
                 <ProductDescriptionImages
+                  key={`description-${editingProduct.id || "new"}`}
                   product={editingProduct}
                   images={images}
                   setProduct={setEditingProduct}
@@ -671,6 +681,7 @@ export default function StoreAdminPage() {
                   busy={busy}
                 />
                 <ProductEditor
+                  key={`editor-${editingProduct.id || "new"}`}
                   product={editingProduct}
                   categories={categories}
                   images={images}
@@ -680,7 +691,7 @@ export default function StoreAdminPage() {
                   onClose={() => setEditingProduct(null)}
                   busy={busy}
                 />
-              </>
+              </div>
             )}
           </>
         )}
