@@ -58,10 +58,12 @@ const orderStatusOptions = [
   "cancelled",
 ];
 
+type ProductUpdater = (current: Product) => Product;
+const retryDelay = (milliseconds: number) =>
+  new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
 export default function StoreAdminPage() {
-  const [token, setToken] = useState(
-    () => sessionStorage.getItem("silas-store-admin-token") || "",
-  );
+  const [token, setToken] = useState("checking");
   const [password, setPassword] = useState("");
   const [tab, setTab] = useState<
     "orders" | "products" | "categories" | "settings"
@@ -69,12 +71,13 @@ export default function StoreAdminPage() {
   const [orders, setOrders] = useState<OrderSummary[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [images, setImages] = useState<ProductImage[]>([]);
-  const [imageLimit, setImageLimit] = useState(10);
   const [selectedOrder, setSelectedOrder] = useState<OrderSummary | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProductIsNew, setEditingProductIsNew] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const productEditorRef = useRef<HTMLDivElement>(null);
+  const pendingImages = useRef(new Map<string, string>());
+  const editorSession = useRef(0);
   const [newCategory, setNewCategory] = useState({
     name: "",
     slug: "",
@@ -91,6 +94,40 @@ export default function StoreAdminPage() {
     () => localStorage.getItem("silas-store-admin-theme") === "dark",
   );
 
+  const deletePendingImageWithRetry = async (
+    productId: string,
+    imageId: string,
+  ) => {
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        await storeApi.deletePendingProductImage(productId, imageId);
+        pendingImages.current.delete(imageId);
+        return;
+      } catch (err) {
+        lastError = err;
+        if (attempt < 2) await retryDelay(150 * (attempt + 1));
+      }
+    }
+    throw lastError instanceof Error ? lastError : new Error("临时图片清理失败");
+  };
+
+  const flushPendingImages = async (productId?: string) => {
+    const entries = [...pendingImages.current.entries()].filter(
+      ([, ownerProductId]) => !productId || ownerProductId === productId,
+    );
+    const results = await Promise.allSettled(
+      entries.map(([imageId, ownerProductId]) =>
+        deletePendingImageWithRetry(ownerProductId, imageId),
+      ),
+    );
+    return results.filter((result) => result.status === "rejected").length;
+  };
+
+  const updateEditingProduct = (update: ProductUpdater) => {
+    setEditingProduct((current) => (current ? update(current) : current));
+  };
+
   const loadData = async () => {
     setBusy(true);
     setError("");
@@ -99,11 +136,9 @@ export default function StoreAdminPage() {
       setOrders(data.orders);
       setProducts(data.products);
       setCategories(data.categories);
-      setImages(data.images);
-      setImageLimit(data.imageLimit);
     } catch (err) {
       setError((err as Error).message);
-      if ((err as Error).message.includes("登录")) logout();
+      if ((err as Error).message.includes("登录")) logout(true);
     } finally {
       setBusy(false);
     }
@@ -127,14 +162,23 @@ export default function StoreAdminPage() {
     );
   }, [darkMode]);
 
+  useEffect(() => () => {
+    editorSession.current += 1;
+    for (const [imageId, productId] of pendingImages.current.entries()) {
+      void fetch(
+        `/api/admin/products/${encodeURIComponent(productId)}/images/${encodeURIComponent(imageId)}`,
+        { method: "DELETE", credentials: "same-origin", keepalive: true },
+      );
+    }
+  }, []);
+
   const login = async (event: React.FormEvent) => {
     event.preventDefault();
     setBusy(true);
     setError("");
     try {
-      const result = await storeApi.adminLogin(password);
-      sessionStorage.setItem("silas-store-admin-token", result.token);
-      setToken(result.token);
+      await storeApi.adminLogin(password);
+      setToken("authenticated");
       setPassword("");
     } catch (err) {
       setError((err as Error).message);
@@ -143,9 +187,21 @@ export default function StoreAdminPage() {
     }
   };
 
-  const logout = () => {
-    sessionStorage.removeItem("silas-store-admin-token");
-    setToken("");
+  const logout = (force = false) => {
+    if (busy && !force) return;
+    editorSession.current += 1;
+    setBusy(true);
+    void (async () => {
+      try {
+        await flushPendingImages();
+      } finally {
+        await storeApi.adminLogout().catch(() => undefined);
+        setEditingProduct(null);
+        setEditingProductIsNew(false);
+        setToken("");
+        setBusy(false);
+      }
+    })();
   };
 
   const filteredOrders = useMemo(
@@ -207,9 +263,18 @@ export default function StoreAdminPage() {
     setBusy(true);
     setError("");
     try {
-      await storeApi.saveProduct(editingProduct, !editingProduct.id);
+      await storeApi.saveProduct(editingProduct, editingProductIsNew);
+      const retained = new Set([
+        editingProduct.image_id,
+        ...(editingProduct.description_images || []).map((image) => image.id),
+      ].filter(Boolean));
+      retained.forEach((id) => pendingImages.current.delete(id));
+      const cleanupFailures = await flushPendingImages(editingProduct.id);
+      editorSession.current += 1;
       setEditingProduct(null);
+      setEditingProductIsNew(false);
       await loadData();
+      if (cleanupFailures) setError("商品已保存；少量临时图片会在过期后由管理端自动清理。");
     } catch (err) {
       setError((err as Error).message);
       setBusy(false);
@@ -269,12 +334,19 @@ export default function StoreAdminPage() {
     }
   };
 
-  const uploadProductImage = async (file: File) => {
+  const uploadProductImage = async (file: File, role: "avatar" | "description") => {
+    if (!editingProduct) return null;
+    const productId = editingProduct.id;
+    const session = editorSession.current;
     setBusy(true);
     setError("");
     try {
-      const result = await storeApi.uploadProductImage(file);
-      setImages((current) => [result.image, ...current]);
+      const result = await storeApi.uploadProductImage(productId, role, file);
+      pendingImages.current.set(result.image.id, productId);
+      if (session !== editorSession.current) {
+        await deletePendingImageWithRetry(productId, result.image.id);
+        return null;
+      }
       return result.image;
     } catch (err) {
       setError((err as Error).message);
@@ -284,30 +356,53 @@ export default function StoreAdminPage() {
     }
   };
 
-  const deleteProductImage = async (image: ProductImage) => {
+  const discardPendingImage = async (imageId: string) => {
+    if (!editingProduct) return false;
+    const ownerProductId = pendingImages.current.get(imageId);
+    if (!ownerProductId) return true;
     setBusy(true);
     setError("");
     try {
-      await storeApi.deleteProductImage(image.id);
-      setImages((current) => current.filter((item) => item.id !== image.id));
+      await deletePendingImageWithRetry(ownerProductId, imageId);
+      return true;
     } catch (err) {
       setError((err as Error).message);
+      return false;
     } finally {
       setBusy(false);
     }
   };
 
-  const updateImageLimit = async (limit: number) => {
+  const closeProductEditor = async () => {
+    if (!editingProduct) return true;
+    if (busy) return false;
     setBusy(true);
     setError("");
-    try {
-      const result = await storeApi.updateImageLimit(limit);
-      setImageLimit(result.limit);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
+    const cleanupFailures = await flushPendingImages(editingProduct.id);
+    if (cleanupFailures) {
+      setError("临时图片清理失败，请检查网络后再次点击取消。");
       setBusy(false);
+      return false;
     }
+    editorSession.current += 1;
+    setEditingProduct(null);
+    setEditingProductIsNew(false);
+    setBusy(false);
+    return true;
+  };
+
+  const openProductEditor = async (product: Product, isNew: boolean) => {
+    if (busy) return;
+    if (editingProduct && !await closeProductEditor()) return;
+    editorSession.current += 1;
+    setEditingProduct(product);
+    setEditingProductIsNew(isNew);
+  };
+
+  const changeTab = async (nextTab: typeof tab) => {
+    if (busy) return;
+    if (editingProduct && !await closeProductEditor()) return;
+    setTab(nextTab);
   };
 
   if (!token)
@@ -355,30 +450,34 @@ export default function StoreAdminPage() {
         <nav>
           <button
             className={tab === "orders" ? "active" : ""}
-            onClick={() => setTab("orders")}
+            onClick={() => void changeTab("orders")}
+            disabled={busy}
           >
             订单
           </button>
           <button
             className={tab === "products" ? "active" : ""}
-            onClick={() => setTab("products")}
+            onClick={() => void changeTab("products")}
+            disabled={busy}
           >
             商品
           </button>
           <button
             className={tab === "categories" ? "active" : ""}
-            onClick={() => setTab("categories")}
+            onClick={() => void changeTab("categories")}
+            disabled={busy}
           >
             分类
           </button>
           <button
             className={tab === "settings" ? "active" : ""}
-            onClick={() => setTab("settings")}
+            onClick={() => void changeTab("settings")}
+            disabled={busy}
           >
             页面设置
           </button>
         </nav>
-        <button className="logout" onClick={logout}>
+        <button className="logout" onClick={() => logout()} disabled={busy}>
           <LogOut size={15} /> 退出登录
         </button>
       </aside>
@@ -421,14 +520,16 @@ export default function StoreAdminPage() {
             {tab === "products" && (
               <button
                 className="store-primary"
+                disabled={busy}
                 onClick={() =>
-                  setEditingProduct({
+                  void openProductEditor({
                     ...emptyProduct,
+                    id: `prod-${crypto.randomUUID()}`,
                     category_id:
                       productCategory !== "all"
                         ? productCategory
                         : categories[0]?.id || "",
-                  })
+                  }, true)
                 }
               >
                 <PackagePlus size={15} /> 新增商品
@@ -671,12 +772,13 @@ export default function StoreAdminPage() {
                       </span>
                       <button
                         className="admin-secondary"
+                        disabled={busy}
                         onClick={() =>
-                          setEditingProduct({
+                          void openProductEditor({
                             ...product,
                             description_images:
                               product.description_images || [],
-                          })
+                          }, false)
                         }
                       >
                         编辑
@@ -694,20 +796,21 @@ export default function StoreAdminPage() {
                 <ProductDescriptionImages
                   key={`description-${editingProduct.id || "new"}`}
                   product={editingProduct}
-                  images={images}
-                  setProduct={setEditingProduct}
-                  onUpload={uploadProductImage}
+                  setProduct={updateEditingProduct}
+                  onUpload={(file) => uploadProductImage(file, "description")}
+                  onDiscard={discardPendingImage}
                   busy={busy}
                 />
                 <ProductEditor
                   key={`editor-${editingProduct.id || "new"}`}
                   product={editingProduct}
                   categories={categories}
-                  images={images}
-                  setProduct={setEditingProduct}
-                  onUpload={uploadProductImage}
+                  setProduct={updateEditingProduct}
+                  onUpload={(file) => uploadProductImage(file, "avatar")}
+                  onDiscard={discardPendingImage}
+                  isNew={editingProductIsNew}
                   onSubmit={saveProduct}
-                  onClose={() => setEditingProduct(null)}
+                  onClose={() => void closeProductEditor()}
                   busy={busy}
                 />
               </div>
@@ -869,20 +972,11 @@ export default function StoreAdminPage() {
           </>
         )}
         {tab === "settings" && (
-          <>
-            <CategoryLayoutSettings
-              categories={categories}
-              busy={busy}
-              onChange={updateCategoryLayout}
-            />
-            <ImageLibrarySettings
-              images={images}
-              limit={imageLimit}
-              busy={busy}
-              onLimitChange={updateImageLimit}
-              onDelete={deleteProductImage}
-            />
-          </>
+          <CategoryLayoutSettings
+            categories={categories}
+            busy={busy}
+            onChange={updateCategoryLayout}
+          />
         )}
       </main>
     </div>
@@ -891,28 +985,19 @@ export default function StoreAdminPage() {
 
 function ProductDescriptionImages({
   product,
-  images,
   setProduct,
   onUpload,
+  onDiscard,
   busy,
 }: {
   product: Product;
-  images: ProductImage[];
-  setProduct: (product: Product) => void;
+  setProduct: (update: ProductUpdater) => void;
   onUpload: (file: File) => Promise<ProductImage | null>;
+  onDiscard: (imageId: string) => Promise<boolean>;
   busy: boolean;
 }) {
-  const [libraryOpen, setLibraryOpen] = useState(false);
   const [uploadSummary, setUploadSummary] = useState("");
   const selected = product.description_images || [];
-  const addImage = (image: ProductImage) => {
-    if (
-      image.id !== product.image_id &&
-      !selected.some((item) => item.id === image.id) &&
-      selected.length < 20
-    )
-      setProduct({ ...product, description_images: [...selected, image] });
-  };
   return (
     <section className="admin-panel description-image-editor">
       <div className="settings-heading">
@@ -933,9 +1018,8 @@ function ProductDescriptionImages({
             onChange={async (event) => {
               const files = Array.from(event.target.files || []);
               if (!files.length) return;
-              const available = Math.max(0, 20 - selected.length);
               const uploaded: ProductImage[] = [];
-              for (const file of files.slice(0, available)) {
+              for (const file of files) {
                 const image = await onUpload(file);
                 if (image && image.id !== product.image_id) uploaded.push(image);
               }
@@ -945,9 +1029,15 @@ function ProductDescriptionImages({
                   uploaded.findIndex((item) => item.id === image.id) === index,
               );
               if (unique.length)
-                setProduct({
-                  ...product,
-                  description_images: [...selected, ...unique].slice(0, 20),
+                setProduct((current) => {
+                  const currentImages = current.description_images || [];
+                  const additions = unique.filter(
+                    (image) => !currentImages.some((item) => item.id === image.id),
+                  );
+                  return {
+                    ...current,
+                    description_images: [...currentImages, ...additions],
+                  };
                 });
               const skipped = files.length - unique.length;
               setUploadSummary(
@@ -957,13 +1047,6 @@ function ProductDescriptionImages({
             }}
           />
         </label>
-        <button
-          type="button"
-          className="admin-secondary"
-          onClick={() => setLibraryOpen((value) => !value)}
-        >
-          <Images size={15} /> 从图片库选择
-        </button>
       </div>
       {uploadSummary && <p className="image-upload-summary">{uploadSummary}</p>}
       {selected.length > 0 && (
@@ -974,36 +1057,22 @@ function ProductDescriptionImages({
               <button
                 type="button"
                 aria-label={`移除 ${image.file_name}`}
-                onClick={() =>
-                  setProduct({
-                    ...product,
-                    description_images: selected.filter(
-                      (item) => item.id !== image.id,
-                    ),
-                  })
-                }
+                disabled={busy}
+                onClick={() => {
+                  void (async () => {
+                    if (!await onDiscard(image.id)) return;
+                    setProduct((current) => ({
+                      ...current,
+                      description_images: (current.description_images || []).filter(
+                        (item) => item.id !== image.id,
+                      ),
+                    }));
+                  })();
+                }}
               >
                 <Trash2 size={15} />
               </button>
             </article>
-          ))}
-        </div>
-      )}
-      {libraryOpen && (
-        <div className="image-picker">
-          {images.map((image) => (
-            <button
-              type="button"
-              key={image.id}
-              disabled={image.id === product.image_id}
-              className={
-                selected.some((item) => item.id === image.id) ? "selected" : ""
-              }
-              onClick={() => addImage(image)}
-            >
-              <img src={image.url} alt={image.file_name} />
-              <span>{image.file_name}</span>
-            </button>
           ))}
         </div>
       )}
@@ -1014,25 +1083,26 @@ function ProductDescriptionImages({
 function ProductEditor({
   product,
   categories,
-  images,
   setProduct,
   onUpload,
+  onDiscard,
+  isNew,
   onSubmit,
   onClose,
   busy,
 }: {
   product: Product;
   categories: Category[];
-  images: ProductImage[];
-  setProduct: (product: Product) => void;
+  setProduct: (update: ProductUpdater) => void;
   onUpload: (file: File) => Promise<ProductImage | null>;
+  onDiscard: (imageId: string) => Promise<boolean>;
+  isNew: boolean;
   onSubmit: (event: React.FormEvent) => void;
   onClose: () => void;
   busy: boolean;
 }) {
-  const [libraryOpen, setLibraryOpen] = useState(false);
   const update = (field: keyof Product, value: string | number) =>
-    setProduct({ ...product, [field]: value });
+    setProduct((current) => ({ ...current, [field]: value }));
   const discount =
     product.original_price_cents > product.price_cents
       ? Number(
@@ -1042,12 +1112,11 @@ function ProductEditor({
         )
       : null;
   const chooseImage = (image: ProductImage) => {
-    setProduct({ ...product, image_id: image.id, image_url: image.url });
-    setLibraryOpen(false);
+    setProduct((current) => ({ ...current, image_id: image.id, image_url: image.url }));
   };
   return (
     <form className="admin-panel" onSubmit={onSubmit}>
-      <h3>{product.id ? "编辑商品" : "新增商品"}</h3>
+      <h3>{isNew ? "新增商品" : "编辑商品"}</h3>
       <section className="product-image-editor">
         <div className="product-image-preview">
           {product.image_url ? (
@@ -1058,7 +1127,7 @@ function ProductEditor({
         </div>
         <div>
           <strong>商品头像</strong>
-          <p>显示在商品列表中；未设置时，首张上传图片会自动成为头像。支持 JPG、PNG、WebP，单张最大 5MB。</p>
+          <p>显示在商品列表中；每次上传一张，新图片会替换当前头像。支持 JPG、PNG、WebP，单张最大 5MB。</p>
           <div className="product-image-actions">
             <label className="admin-secondary">
               <Upload size={15} /> 上传单张头像
@@ -1070,25 +1139,24 @@ function ProductEditor({
                   const file = event.target.files?.[0];
                   if (!file) return;
                   const image = await onUpload(file);
-                  if (image) chooseImage(image);
+                  if (image) {
+                    if (await onDiscard(product.image_id)) chooseImage(image);
+                  }
                   event.target.value = "";
                 }}
               />
             </label>
-            <button
-              type="button"
-              className="admin-secondary"
-              onClick={() => setLibraryOpen((value) => !value)}
-            >
-              <Images size={15} /> 选择图片库
-            </button>
             {product.image_id && (
               <button
                 type="button"
                 className="admin-secondary"
-                onClick={() =>
-                  setProduct({ ...product, image_id: "", image_url: "" })
-                }
+                disabled={busy}
+                onClick={() => {
+                  void (async () => {
+                    if (!await onDiscard(product.image_id)) return;
+                    setProduct((current) => ({ ...current, image_id: "", image_url: "" }));
+                  })();
+                }}
               >
                 取消图片
               </button>
@@ -1096,25 +1164,6 @@ function ProductEditor({
           </div>
         </div>
       </section>
-      {libraryOpen && (
-        <div className="image-picker">
-          {images.length ? (
-            images.map((image) => (
-              <button
-                type="button"
-                key={image.id}
-                className={product.image_id === image.id ? "selected" : ""}
-                onClick={() => chooseImage(image)}
-              >
-                <img src={image.url} alt={image.file_name} />
-                <span>{image.file_name}</span>
-              </button>
-            ))
-          ) : (
-            <div className="admin-empty">图片库为空，请先上传图片</div>
-          )}
-        </div>
-      )}
       <div className="admin-form-grid">
         <label className="admin-field">
           商品名称
@@ -1224,7 +1273,7 @@ function ProductEditor({
         />
       </label>
       <div className="admin-form-actions">
-        <button type="button" className="admin-secondary" onClick={onClose}>
+        <button type="button" className="admin-secondary" onClick={onClose} disabled={busy}>
           取消
         </button>
         <button className="store-primary" disabled={busy}>
@@ -1276,78 +1325,6 @@ function CategoryLayoutSettings({
           </div>
         ))}
       </div>
-    </section>
-  );
-}
-
-function ImageLibrarySettings({
-  images,
-  limit,
-  busy,
-  onLimitChange,
-  onDelete,
-}: {
-  images: ProductImage[];
-  limit: number;
-  busy: boolean;
-  onLimitChange: (limit: number) => void;
-  onDelete: (image: ProductImage) => void;
-}) {
-  const [value, setValue] = useState(limit);
-  useEffect(() => setValue(limit), [limit]);
-  return (
-    <section className="admin-panel image-library-settings">
-      <div className="settings-heading">
-        <Images size={22} />
-        <div>
-          <h3>商品图片库</h3>
-          <p>
-            已使用 {images.length} / {limit} 张。文件存储在私有
-            R2，通过商店图片接口访问。
-          </p>
-        </div>
-      </div>
-      <div className="image-limit-control">
-        <label className="admin-field">
-          图片数量上限
-          <input
-            type="number"
-            min="1"
-            max="100"
-            value={value}
-            onChange={(event) => setValue(Number(event.target.value))}
-          />
-        </label>
-        <button
-          className="admin-secondary"
-          disabled={busy || value === limit}
-          onClick={() => onLimitChange(value)}
-        >
-          保存上限
-        </button>
-      </div>
-      <div className="image-library-grid">
-        {images.map((image) => (
-          <article key={image.id}>
-            <img src={image.url} alt={image.file_name} />
-            <div>
-              <strong>{image.file_name}</strong>
-              <small>
-                {(image.size_bytes / 1024).toFixed(0)} KB · 使用{" "}
-                {image.usage_count || 0} 次
-              </small>
-            </div>
-            <button
-              title="删除图片"
-              disabled={busy || Number(image.usage_count) > 0}
-              onClick={() => onDelete(image)}
-            >
-              <Trash2 size={15} />
-            </button>
-          </article>
-        ))}
-      </div>
-      {images.length === 0 && <div className="admin-empty">图片库为空</div>}
     </section>
   );
 }

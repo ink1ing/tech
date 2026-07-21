@@ -20,9 +20,8 @@ export async function onRequestPatch({ request, env, params }: PagesContext) {
     env.DB.prepare(`UPDATE orders SET order_status = ?, payment_status = ?, admin_note = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
       .bind(orderStatus, paymentStatus, adminNote, order.id),
     env.DB.prepare('INSERT INTO order_events (order_id, event_type, detail) VALUES (?, ?, ?)')
-      .bind(order.id, 'admin_status_updated', `Order: ${orderStatus}; Payment: ${paymentStatus}${adminNote ? `; ${adminNote}` : ''}`),
+      .bind(order.id, 'admin_status_updated', `Order: ${orderStatus}; Payment: ${paymentStatus}`),
   ]);
   await notifyTelegram(env, `Silas Store 状态已更新\n订单：${order.order_number}\n订单状态：${orderStatus}\n付款状态：${paymentStatus}`);
   return json({ ok: true });
 }
-

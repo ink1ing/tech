@@ -11,7 +11,6 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 const authHeaders = () => ({
   'content-type': 'application/json',
-  authorization: `Bearer ${sessionStorage.getItem('silas-store-admin-token') || ''}`,
 });
 
 export const storeApi = {
@@ -29,20 +28,22 @@ export const storeApi = {
     `/api/orders/${encodeURIComponent(orderNumber)}/payment`, { method: 'POST', body: form },
   ),
   lookupOrder: (orderNumber: string, lookupKey: string) => request<{ order: LookupOrder }>(
-    `/api/orders/${encodeURIComponent(orderNumber)}?key=${encodeURIComponent(lookupKey)}`,
+    `/api/orders/${encodeURIComponent(orderNumber)}`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ lookupKey }),
+    },
   ),
-  adminLogin: (password: string) => request<{ token: string }>('/api/admin/login', {
+  adminLogin: (password: string) => request<{ ok: true; expiresIn: number }>('/api/admin/login', {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ password }),
   }),
+  adminLogout: () => request<{ ok: true }>('/api/admin/logout', { method: 'POST' }),
   getAdminData: async () => {
     const headers = authHeaders();
-    const [orders, products, categories, images] = await Promise.all([
+    const [orders, products, categories] = await Promise.all([
       request<{ orders: OrderSummary[] }>('/api/admin/orders', { headers }),
       request<{ products: Product[] }>('/api/admin/products', { headers }),
       request<{ categories: Category[] }>('/api/admin/categories', { headers }),
-      request<{ images: ProductImage[]; limit: number }>('/api/admin/images', { headers }),
     ]);
-    return { orders: orders.orders, products: products.products, categories: categories.categories, images: images.images, imageLimit: images.limit };
+    return { orders: orders.orders, products: products.products, categories: categories.categories };
   },
   updateOrder: (orderNumber: string, body: Record<string, unknown>) => request<{ ok: true }>(
     `/api/admin/orders/${encodeURIComponent(orderNumber)}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify(body) },
@@ -51,6 +52,7 @@ export const storeApi = {
     isNew ? '/api/admin/products' : `/api/admin/products/${encodeURIComponent(product.id)}`,
     { method: isNew ? 'POST' : 'PATCH', headers: authHeaders(), body: JSON.stringify({
       categoryId: product.category_id,
+      id: product.id,
       slug: product.slug,
       name: product.name,
       subtitle: product.subtitle,
@@ -69,28 +71,25 @@ export const storeApi = {
   createCategory: (body: Record<string, unknown>) => request<{ id: string }>('/api/admin/categories', {
     method: 'POST', headers: authHeaders(), body: JSON.stringify(body),
   }),
-  uploadProductImage: async (file: File) => {
+  uploadProductImage: async (productId: string, role: 'avatar' | 'description', file: File) => {
     const form = new FormData();
     form.set('image', file);
-    return request<{ image: ProductImage }>('/api/admin/images', {
-      method: 'POST', headers: { authorization: authHeaders().authorization }, body: form,
+    form.set('role', role);
+    return request<{ image: ProductImage }>(`/api/admin/products/${encodeURIComponent(productId)}/images`, {
+      method: 'POST', body: form,
     });
   },
-  deleteProductImage: (id: string) => request<{ ok: true }>(`/api/admin/images/${encodeURIComponent(id)}`, {
-    method: 'DELETE', headers: authHeaders(),
-  }),
-  updateImageLimit: (limit: number) => request<{ ok: true; limit: number }>('/api/admin/image-settings', {
-    method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ limit }),
-  }),
+  deletePendingProductImage: (productId: string, imageId: string) => request<{ ok: true }>(
+    `/api/admin/products/${encodeURIComponent(productId)}/images/${encodeURIComponent(imageId)}`,
+    { method: 'DELETE' },
+  ),
   updateCategory: (category: Category) => request<{ ok: true }>(`/api/admin/categories/${encodeURIComponent(category.id)}`, {
     method: 'PATCH', headers: authHeaders(), body: JSON.stringify({
       name: category.name, slug: category.slug, active: category.active !== 0, sortOrder: category.sort_order, gridColumns: category.grid_columns === 1 ? 1 : 2,
     }),
   }),
   fetchProof: async (orderNumber: string) => {
-    const response = await fetch(`/api/admin/orders/${encodeURIComponent(orderNumber)}/proof`, {
-      headers: { authorization: authHeaders().authorization },
-    });
+    const response = await fetch(`/api/admin/orders/${encodeURIComponent(orderNumber)}/proof`);
     if (!response.ok) {
       const payload = await response.json().catch(() => ({})) as ApiErrorPayload;
       throw new Error(payload.error?.message || '无法读取付款截图');

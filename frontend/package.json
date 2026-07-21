@@ -6,39 +6,42 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc -p tsconfig.functions.json",
     "build:safe": "node build-safe.js",
     "preview": "vite preview",
     "cf:dev": "npm run build && wrangler pages dev dist",
     "db:migrate:local": "wrangler d1 migrations apply silas-store --local",
     "db:migrate:remote": "wrangler d1 migrations apply silas-store --remote",
     "test:store": "node scripts/store-integration.mjs",
+    "security:verify-assets": "node scripts/verify-payment-assets.mjs",
     "deploy:cf": "npm run build && wrangler pages deploy dist --project-name tech",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix"
   },
   "dependencies": {
-    "@types/react-router-dom": "^5.3.3",
     "lucide-react": "^0.263.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.8.1"
+    "react-router-dom": "^7.18.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/node": "^20.5.0",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "@vitejs/plugin-react-swc": "^3.3.2",
+    "@typescript-eslint/eslint-plugin": "^8.65.0",
+    "@typescript-eslint/parser": "^8.65.0",
+    "@vitejs/plugin-react-swc": "^4.3.1",
     "autoprefixer": "^10.4.15",
-    "eslint": "^8.45.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.3",
-    "postcss": "^8.4.29",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.10",
     "tailwindcss": "^3.3.3",
     "terser": "^5.19.2",
     "typescript": "^5.0.2",
-    "vite": "^4.4.5",
+    "vite": "^8.1.5",
     "wrangler": "^4.112.0"
   },
   "keywords": [
@@ -55,7 +58,7 @@
     "url": "https://github.com/ink1ing/tech.git"
   },
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=22.12.0",
     "npm": ">=8.0.0"
   }
 }

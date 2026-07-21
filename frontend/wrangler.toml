@@ -11,12 +11,3 @@ migrations_dir = "migrations"
 [[r2_buckets]]
 binding = "PAYMENT_PROOFS"
 bucket_name = "silas-store-payment-proofs"
-
-[vars]
-STORE_ORIGIN = "https://shangdian.me"
-ALIPAY_QR_URL = "https://shangdian.me/payments/alipay.jpg"
-WECHAT_QR_URL = "https://shangdian.me/payments/wechat.jpg"
-USDT_XLAYER_QR_URL = "https://shangdian.me/payments/usdt-xlayer.jpg"
-USDT_BSC_QR_URL = "https://shangdian.me/payments/usdt-bsc.jpg"
-USDT_SOLANA_QR_URL = "https://shangdian.me/payments/usdt-solana.jpg"
-USDT_POLYGON_QR_URL = "https://shangdian.me/payments/usdt-polygon.jpg"

@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import Layout from './components/Layout';
 import NavigationPage from './pages/NavigationPage';
@@ -33,10 +34,8 @@ function App() {
     <AppProvider>
       <Router>
         <Routes>
-          <Route path="/mystore" element={<StorePage />} />
-          <Route path="/mystore/product/:slug" element={<StorePage />} />
-          <Route path="/mystore/checkout/:slug" element={<StorePage />} />
-          <Route path="/mystore/admin" element={<StoreAdminPage />} />
+          <Route path="/mystore" element={<StoreRedirect />} />
+          <Route path="/mystore/*" element={<StoreRedirect />} />
           <Route path="*" element={<Layout><Routes>
             <Route path="/" element={<Navigate to="/navigation" replace />} />
             <Route path="/navigation" element={<NavigationPage />} />
@@ -51,6 +50,15 @@ function App() {
       </Router>
     </AppProvider>
   );
+}
+
+function StoreRedirect() {
+  const location = useLocation();
+  useEffect(() => {
+    const pathname = location.pathname.replace(/^\/mystore/, '') || '/';
+    window.location.replace(`https://store.shangdian.me${pathname}${location.search}${location.hash}`);
+  }, [location]);
+  return null;
 }
 
 export default App;

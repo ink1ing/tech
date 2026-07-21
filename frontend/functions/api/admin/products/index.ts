@@ -1,8 +1,10 @@
 import type { PagesContext } from '../../../_lib/types';
 import { cleanText, fail, json, readJson } from '../../../_lib/http';
+import { cleanupExpiredOrphanImages, isProductId, validateProductImages } from '../../../_lib/product-images';
 import { isAdmin } from '../../../_lib/security';
 
 interface ProductInput {
+  id?: string;
   categoryId?: string;
   slug?: string;
   name?: string;
@@ -20,6 +22,7 @@ interface ProductInput {
 
 export async function onRequestGet({ request, env }: PagesContext) {
   if (!await isAdmin(request, env)) return fail('请先登录管理员后台', 401, 'UNAUTHORIZED');
+  try { await cleanupExpiredOrphanImages(env); } catch (error) { console.error('Product image cleanup unavailable', error); }
   const [result, descriptionImages] = await Promise.all([
     env.DB.prepare(`SELECT p.*, c.name AS category_name,
       CASE WHEN p.image_id != '' THEN '/api/product-images/' || p.image_id ELSE '' END AS image_url FROM products p
@@ -39,8 +42,11 @@ export async function onRequestPost({ request, env }: PagesContext) {
   if (!await isAdmin(request, env)) return fail('请先登录管理员后台', 401, 'UNAUTHORIZED');
   const body = await readJson<ProductInput>(request);
   const product = normalize(body);
-  if ('error' in product) return fail(product.error);
-  const id = `prod-${crypto.randomUUID()}`;
+  if ('error' in product) return fail(product.error || '商品信息无效');
+  const id = cleanText(body.id, 100);
+  if (!isProductId(id)) return fail('商品标识无效，请重新打开新增商品页面');
+  const imageError = await validateProductImages(env, id, product.imageId, product.descriptionImageIds);
+  if (imageError) return fail(imageError);
   await env.DB.batch([env.DB.prepare(`INSERT INTO products
     (id, category_id, slug, name, subtitle, description, price_cents, original_price_cents, image_id, fulfillment, delivery_note, icon, sort_order)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
@@ -64,12 +70,13 @@ export function normalize(body: ProductInput) {
   if (!Number.isFinite(priceCents) || priceCents < 0) return { error: '商品价格不正确' };
   if (!Number.isFinite(originalPriceCents) || originalPriceCents < 0) return { error: '商品原价不正确' };
   if (!['digital', 'shipping'].includes(fulfillment)) return { error: '交付方式不正确' };
+  const imageId = cleanText(body.imageId, 100);
   return {
     categoryId, slug, name, priceCents, originalPriceCents, fulfillment,
-    imageId: cleanText(body.imageId, 100),
+    imageId,
     descriptionImageIds: Array.from(new Set(Array.isArray(body.descriptionImageIds)
       ? body.descriptionImageIds.map(id => cleanText(id, 100)).filter(Boolean)
-      : [])).slice(0, 20),
+      : [])).filter(id => id !== imageId),
     subtitle: cleanText(body.subtitle, 200),
     description: cleanText(body.description, 3000),
     deliveryNote: cleanText(body.deliveryNote, 100),

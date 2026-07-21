@@ -35,13 +35,14 @@ export interface ProductImage {
   size_bytes: number;
   created_at: string;
   url: string;
-  usage_count?: number;
 }
 
 export interface PaymentConfig {
   alipayQrUrl: string;
+  alipayQrSha256: string;
   wechatQrUrl: string;
-  usdtOptions: Array<{ id: string; name: string; qrUrl: string }>;
+  wechatQrSha256: string;
+  usdtOptions: Array<{ id: string; name: string; qrUrl: string; sha256: string }>;
 }
 
 export interface OrderReceipt {

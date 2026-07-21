@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft, BarChart3, BookOpen, Check, CheckCircle2, CreditCard, Download, FileText, Hammer, Menu, Moon,
-  MessageCircle, Package, Receipt as ReceiptText, Search, Send, Settings, ShoppingBag, Star, Sun, Trash2, X, ZoomIn,
+  MessageCircle, Package, Receipt as ReceiptText, Search, Send, Settings, ShieldCheck, ShoppingBag, Star, Sun, Trash2, X, ZoomIn,
 } from 'lucide-react';
 import { storeApi } from '../services/storeApi';
 import type { Category, LookupOrder, OrderReceipt, Product, ProductImage } from '../types/store';
@@ -244,23 +244,59 @@ function PurchaseComplete({ receipt }: { receipt: OrderReceipt }) {
 function CheckoutContent(props: { form: CheckoutForm; setForm: React.Dispatch<React.SetStateAction<CheckoutForm>>; needsShipping: boolean; products: Product[]; total: number; receipt: OrderReceipt | null; paymentReference: string; setPaymentReference: (value: string) => void; setPaymentProof: (file: File | null) => void; onCreate: (event: React.FormEvent) => void; onPayment: (event: React.FormEvent) => void; busy: boolean }) {
   const { form, setForm, needsShipping, products, total, receipt, busy } = props;
   const update = (field: keyof CheckoutForm, value: string) => setForm(current => ({ ...current, [field]: value }));
+  const usdtOption = receipt?.paymentConfig.usdtOptions.find(option => option.id === receipt.paymentNetwork);
+  const qrUrl = receipt?.paymentMethod === 'usdt'
+    ? usdtOption?.qrUrl
+    : receipt?.paymentMethod === 'alipay' ? receipt.paymentConfig.alipayQrUrl : receipt?.paymentConfig.wechatQrUrl;
+  const expectedQrHash = receipt?.paymentMethod === 'usdt'
+    ? usdtOption?.sha256
+    : receipt?.paymentMethod === 'alipay' ? receipt.paymentConfig.alipayQrSha256 : receipt?.paymentConfig.wechatQrSha256;
+  const [verifiedQrUrl, setVerifiedQrUrl] = useState('');
+  const [qrSecurityError, setQrSecurityError] = useState('');
+
+  useEffect(() => {
+    if (!qrUrl || !expectedQrHash) {
+      setVerifiedQrUrl('');
+      setQrSecurityError(receipt ? '收款码安全配置缺失，已禁止付款' : '');
+      return;
+    }
+    const controller = new AbortController();
+    let objectUrl = '';
+    setVerifiedQrUrl('');
+    setQrSecurityError('');
+    void fetch(qrUrl, { cache: 'no-store', credentials: 'same-origin', signal: controller.signal })
+      .then(async response => {
+        if (!response.ok) throw new Error('收款码载入失败');
+        const bytes = await response.arrayBuffer();
+        const digest = await crypto.subtle.digest('SHA-256', bytes);
+        const actual = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+        if (actual !== expectedQrHash) throw new Error('收款码完整性校验失败，已禁止付款');
+        objectUrl = URL.createObjectURL(new Blob([bytes], { type: response.headers.get('content-type') || 'image/jpeg' }));
+        setVerifiedQrUrl(objectUrl);
+      })
+      .catch(error => {
+        if ((error as Error).name !== 'AbortError') setQrSecurityError((error as Error).message);
+      });
+    return () => {
+      controller.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [expectedQrHash, qrUrl, receipt]);
+
   if (receipt) {
-    const usdtOption = receipt.paymentConfig.usdtOptions.find(option => option.id === receipt.paymentNetwork);
-    const qrUrl = receipt.paymentMethod === 'usdt'
-      ? usdtOption?.qrUrl
-      : receipt.paymentMethod === 'alipay' ? receipt.paymentConfig.alipayQrUrl : receipt.paymentConfig.wechatQrUrl;
     return <form className="payment-step" onSubmit={props.onPayment}>
       <small>订单已创建</small><h2>完成付款并提交流水</h2>
       <div className="order-credentials"><div><span>订单号</span><strong>{receipt.orderNumber}</strong></div><div><span>查询密钥</span><strong>{receipt.lookupKey}</strong></div><p>查询密钥只显示一次，已同时保存在当前浏览器。</p></div>
       <div className="payment-instruction">
         <h3>{paymentNames[receipt.paymentMethod]} · {money(receipt.totalCents)}</h3>
         {receipt.paymentMethod === 'usdt' && <p>网络：{usdtOption?.name || receipt.paymentNetwork}</p>}
-        {qrUrl ? <img src={qrUrl} alt={`${paymentNames[receipt.paymentMethod]}${usdtOption ? ` ${usdtOption.name}` : ''}收款码`} /> : <div className="qr-placeholder"><CreditCard /><span>上线后配置收款码</span></div>}
+        {verifiedQrUrl ? <img src={verifiedQrUrl} alt={`${paymentNames[receipt.paymentMethod]}${usdtOption ? ` ${usdtOption.name}` : ''}收款码`} /> : <div className={`qr-placeholder ${qrSecurityError ? 'security-error' : ''}`}><ShieldCheck /><span>{qrSecurityError || '正在验证收款码完整性…'}</span></div>}
+        {verifiedQrUrl && <strong className="payment-security-ok"><ShieldCheck size={15} /> SHA-256 完整性校验通过</strong>}
         {receipt.paymentMethod === 'usdt' && <strong className="network-warning">请仅通过所选网络转账，其他网络可能造成资产损失</strong>}
       </div>
       <label>付款流水号 / USDT 交易哈希<input required value={props.paymentReference} onChange={event => props.setPaymentReference(event.target.value)} placeholder="用于核验付款" /></label>
       <label>付款截图（可选，最大 5MB）<input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => props.setPaymentProof(event.target.files?.[0] || null)} /></label>
-      <button className="store-primary" disabled={busy}>{busy ? '正在提交…' : '我已付款，提交核验'}</button>
+      <button className="store-primary" disabled={busy || !verifiedQrUrl}>{busy ? '正在提交…' : verifiedQrUrl ? '我已付款，提交核验' : '等待收款码安全校验'}</button>
     </form>;
   }
   return <form className="checkout-layout" onSubmit={props.onCreate}>

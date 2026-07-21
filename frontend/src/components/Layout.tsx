@@ -59,6 +59,10 @@ export default function Layout({ children }: LayoutProps) {
   ];
 
   const handleNavigation = (path: string) => {
+    if (path === '/mystore') {
+      window.location.assign('https://store.shangdian.me/');
+      return;
+    }
     navigate(path);
 
     // 在移动端点击菜单项后关闭侧边栏

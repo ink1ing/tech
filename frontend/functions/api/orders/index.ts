@@ -1,7 +1,9 @@
 import type { PagesContext } from '../../_lib/types';
 import { cleanText, fail, isEmail, json, readJson } from '../../_lib/http';
 import { randomToken, sha256 } from '../../_lib/security';
-import { notifyTelegram } from '../../_lib/telegram';
+import { notifyTelegram, telegramValue } from '../../_lib/telegram';
+import { consumeRateLimit } from '../../_lib/rate-limit';
+import { getPaymentConfig } from '../../_lib/payment-config';
 
 interface OrderInput {
   productIds?: string[];
@@ -17,6 +19,8 @@ interface OrderInput {
 }
 
 export async function onRequestPost({ request, env }: PagesContext) {
+  const rate = await consumeRateLimit(request, env, 'order-create', 10, 10 * 60, 30 * 60);
+  if (!rate.allowed) return fail('创建订单过于频繁，请稍后再试', 429, 'RATE_LIMITED', { 'retry-after': String(rate.retryAfter) });
   let input: OrderInput;
   try { input = await readJson<OrderInput>(request); } catch (error) { return fail((error as Error).message); }
 
@@ -72,7 +76,7 @@ export async function onRequestPost({ request, env }: PagesContext) {
     `订单：${orderNumber}`,
     `金额：¥${(totalCents / 100).toFixed(2)}`,
     `支付：${paymentMethod}${paymentNetwork ? ` / ${paymentNetwork}` : ''}`,
-    `商品：${products.map((product: any) => product.name).join('、')}`,
+    `商品：${products.map((product: any) => telegramValue(product.name, 120)).join('、')}`,
   ].join('\n'));
 
   return json({
@@ -82,15 +86,6 @@ export async function onRequestPost({ request, env }: PagesContext) {
     fulfillment,
     paymentMethod,
     paymentNetwork,
-    paymentConfig: {
-      alipayQrUrl: env.ALIPAY_QR_URL || '',
-      wechatQrUrl: env.WECHAT_QR_URL || '',
-      usdtOptions: [
-        { id: 'xlayer', name: 'X Layer', qrUrl: env.USDT_XLAYER_QR_URL || '' },
-        { id: 'bsc', name: 'BNB Chain', qrUrl: env.USDT_BSC_QR_URL || '' },
-        { id: 'solana', name: 'Solana', qrUrl: env.USDT_SOLANA_QR_URL || '' },
-        { id: 'polygon', name: 'Polygon', qrUrl: env.USDT_POLYGON_QR_URL || '' },
-      ],
-    },
+    paymentConfig: getPaymentConfig(),
   }, 201);
 }
