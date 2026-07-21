@@ -808,13 +808,13 @@ function ProductDescriptionImages({
   busy: boolean;
 }) {
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [uploadSummary, setUploadSummary] = useState("");
   const selected = product.description_images || [];
   const addImage = (image: ProductImage) => {
-    if (!product.image_id)
-      setProduct({ ...product, image_id: image.id, image_url: image.url });
-    else if (
+    if (
       image.id !== product.image_id &&
-      !selected.some((item) => item.id === image.id)
+      !selected.some((item) => item.id === image.id) &&
+      selected.length < 20
     )
       setProduct({ ...product, description_images: [...selected, image] });
   };
@@ -824,21 +824,40 @@ function ProductDescriptionImages({
         <Images size={22} />
         <div>
           <h3>商品描述图像</h3>
-          <p>商品头像之外的图片会显示在详情页，并支持顾客放大和保存。</p>
+          <p>可一次选择多张图片；这些图片只用于商品详情，不会替换商品头像。</p>
         </div>
       </div>
       <div className="product-image-actions">
         <label className="admin-secondary">
-          <Upload size={15} /> 上传描述图
+          <Upload size={15} /> 批量上传描述图
           <input
             type="file"
+            multiple
             accept="image/jpeg,image/png,image/webp"
             disabled={busy}
             onChange={async (event) => {
-              const file = event.target.files?.[0];
-              if (!file) return;
-              const image = await onUpload(file);
-              if (image) addImage(image);
+              const files = Array.from(event.target.files || []);
+              if (!files.length) return;
+              const available = Math.max(0, 20 - selected.length);
+              const uploaded: ProductImage[] = [];
+              for (const file of files.slice(0, available)) {
+                const image = await onUpload(file);
+                if (image && image.id !== product.image_id) uploaded.push(image);
+              }
+              const unique = uploaded.filter(
+                (image, index) =>
+                  !selected.some((item) => item.id === image.id) &&
+                  uploaded.findIndex((item) => item.id === image.id) === index,
+              );
+              if (unique.length)
+                setProduct({
+                  ...product,
+                  description_images: [...selected, ...unique].slice(0, 20),
+                });
+              const skipped = files.length - unique.length;
+              setUploadSummary(
+                `已加入 ${unique.length} 张${skipped > 0 ? `，${skipped} 张未加入` : ""}`,
+              );
               event.target.value = "";
             }}
           />
@@ -851,6 +870,7 @@ function ProductDescriptionImages({
           <Images size={15} /> 从图片库选择
         </button>
       </div>
+      {uploadSummary && <p className="image-upload-summary">{uploadSummary}</p>}
       {selected.length > 0 && (
         <div className="selected-description-images">
           {selected.map((image) => (
@@ -946,7 +966,7 @@ function ProductEditor({
           <p>显示在商品列表中；未设置时，首张上传图片会自动成为头像。支持 JPG、PNG、WebP，单张最大 5MB。</p>
           <div className="product-image-actions">
             <label className="admin-secondary">
-              <Upload size={15} /> 上传图片
+              <Upload size={15} /> 上传单张头像
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
