@@ -131,7 +131,9 @@ export default function StorePage() {
       setNotice('付款资料已提交，我们会尽快核验');
       setLookup({ orderNumber: receipt.orderNumber, lookupKey: receipt.lookupKey });
       setPaymentReference(''); setPaymentProof(null);
-      if (isCheckoutPage) setPaymentSubmitted(true);
+      if (receipt.fulfillment === 'digital') {
+        window.location.assign('https://t.me/inkxbt');
+      } else if (isCheckoutPage) setPaymentSubmitted(true);
       else { setCheckoutOpen(false); setBag([]); setReceipt(null); setLookupOpen(true); }
     } catch (err) { setError((err as Error).message); }
     finally { setBusy(false); }

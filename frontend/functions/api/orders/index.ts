@@ -79,6 +79,7 @@ export async function onRequestPost({ request, env }: PagesContext) {
     orderNumber,
     lookupKey,
     totalCents,
+    fulfillment,
     paymentMethod,
     paymentNetwork,
     paymentConfig: {

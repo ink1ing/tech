@@ -24,6 +24,7 @@ const order = await request('/api/orders', {
     email: 'integration@example.com',
     shippingAddress: 'Local test address',
     shippingPhone: '000-0000-0000',
+    shippingPostalCode: '100000',
     paymentMethod: 'usdt',
     paymentNetwork: 'bsc',
     note: 'Automated local test; safe to delete',
@@ -32,6 +33,7 @@ const order = await request('/api/orders', {
 assert(/^SS-\d{8}-[A-F0-9]{10}$/.test(order.orderNumber), 'safe order number');
 assert(order.totalCents === 32900, 'server-calculated total');
 assert(order.lookupKey.length >= 20, 'lookup key');
+assert(order.fulfillment === 'shipping', 'shipping fulfillment');
 assert(order.paymentNetwork === 'bsc', 'selected payment network');
 
 const payment = new FormData();
@@ -52,6 +54,10 @@ const adminOrders = await request('/api/admin/orders', { headers: adminHeaders }
 const created = adminOrders.orders.find(item => item.order_number === order.orderNumber);
 assert(created, 'admin order listing');
 assert(created.payment_network === 'bsc', 'admin payment network');
+assert(created.fulfillment === 'shipping', 'admin shipping fulfillment');
+assert(created.shipping_address === 'Local test address', 'shipping address persisted');
+assert(created.shipping_phone === '000-0000-0000', 'shipping phone persisted');
+assert(created.shipping_postal_code === '100000', 'shipping postal code persisted');
 assert(!('lookup_hash' in created), 'lookup hash is private');
 
 await request(`/api/admin/orders/${order.orderNumber}`, {

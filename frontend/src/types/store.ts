@@ -48,6 +48,7 @@ export interface OrderReceipt {
   orderNumber: string;
   lookupKey: string;
   totalCents: number;
+  fulfillment: 'digital' | 'shipping';
   paymentMethod: 'alipay' | 'wechat' | 'usdt';
   paymentNetwork: string;
   paymentConfig: PaymentConfig;

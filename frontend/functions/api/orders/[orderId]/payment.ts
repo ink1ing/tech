@@ -9,7 +9,9 @@ export async function onRequestPost({ request, env, params }: PagesContext) {
   const paymentReference = cleanText(form.get('paymentReference'), 200);
   if (!lookupKey || !paymentReference) return fail('需要查询密钥和付款流水号');
 
-  const order = await env.DB.prepare('SELECT id, order_number, payment_method, payment_network, total_cents FROM orders WHERE order_number = ? AND lookup_hash = ?')
+  const order = await env.DB.prepare(`SELECT id, order_number, contact_name, fulfillment, shipping_address,
+    shipping_phone, shipping_postal_code, payment_method, payment_network, total_cents
+    FROM orders WHERE order_number = ? AND lookup_hash = ?`)
     .bind(params.orderId, await sha256(lookupKey)).first();
   if (!order) return fail('订单号或查询密钥不正确', 404, 'ORDER_NOT_FOUND');
 
@@ -30,6 +32,14 @@ export async function onRequestPost({ request, env, params }: PagesContext) {
       .bind(order.id, 'payment_submitted', `Reference: ${paymentReference}${proofKey ? '; proof uploaded' : ''}`),
   ]);
 
+  const shippingLines = order.fulfillment === 'shipping' ? [
+    '',
+    '需要发货',
+    `收件人：${order.contact_name}`,
+    `电话：${order.shipping_phone}`,
+    `地址：${order.shipping_address}`,
+    `邮编：${order.shipping_postal_code || '未填写'}`,
+  ] : [];
   await notifyTelegram(env, [
     'Silas Store 待核验付款',
     `订单：${order.order_number}`,
@@ -37,6 +47,7 @@ export async function onRequestPost({ request, env, params }: PagesContext) {
     `方式：${order.payment_method}${order.payment_network ? ` / ${order.payment_network}` : ''}`,
     `流水：${paymentReference}`,
     proofKey ? '已上传付款截图' : '未上传截图',
+    ...shippingLines,
   ].join('\n'));
 
   return json({ ok: true, paymentStatus: 'submitted' });
