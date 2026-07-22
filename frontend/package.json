@@ -13,6 +13,7 @@
     "db:migrate:local": "wrangler d1 migrations apply silas-store --local",
     "db:migrate:remote": "wrangler d1 migrations apply silas-store --remote",
     "test:store": "node scripts/store-integration.mjs",
+    "test:fire": "node scripts/fire-presets-integration.mjs",
     "security:verify-assets": "node scripts/verify-payment-assets.mjs",
     "deploy:cf": "npm run build && wrangler pages deploy dist --project-name tech",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
