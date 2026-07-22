@@ -16,6 +16,8 @@ export async function onRequest(context: PagesContext) {
       || url.pathname.startsWith('/admin')
       || url.pathname.startsWith('/api/')
       || url.pathname.startsWith('/payments/');
+    const isFireSurface = url.hostname.startsWith('fire.');
+    const isIsolatedSurface = isStoreSurface || isFireSurface;
     headers.delete('access-control-allow-origin');
     headers.set('x-content-type-options', 'nosniff');
     headers.set('x-frame-options', 'DENY');
@@ -23,8 +25,8 @@ export async function onRequest(context: PagesContext) {
     headers.set('referrer-policy', 'no-referrer');
     headers.set('permissions-policy', 'accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()');
     headers.set('cross-origin-opener-policy', 'same-origin');
-    headers.set('cross-origin-resource-policy', isStoreSurface ? 'same-origin' : 'same-site');
-    if (isStoreSurface) headers.set('cross-origin-embedder-policy', 'require-corp');
+    headers.set('cross-origin-resource-policy', isIsolatedSurface ? 'same-origin' : 'same-site');
+    if (isIsolatedSurface) headers.set('cross-origin-embedder-policy', 'require-corp');
     const basePolicy = [
       "default-src 'self'",
       "base-uri 'self'",
@@ -48,7 +50,7 @@ export async function onRequest(context: PagesContext) {
       "connect-src 'self' https://*.googlesyndication.com https://*.doubleclick.net",
       "frame-src https://*.googlesyndication.com https://*.doubleclick.net",
     ];
-    headers.set('content-security-policy', [...basePolicy, ...(isStoreSurface ? storePolicy : personalSitePolicy), 'upgrade-insecure-requests'].join('; '));
+    headers.set('content-security-policy', [...basePolicy, ...(isIsolatedSurface ? storePolicy : personalSitePolicy), 'upgrade-insecure-requests'].join('; '));
     if (url.protocol === 'https:') headers.set('strict-transport-security', 'max-age=63072000; includeSubDomains; preload');
     if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/admin') || url.pathname.startsWith('/payments/')) {
       headers.set('cache-control', 'no-store, max-age=0');

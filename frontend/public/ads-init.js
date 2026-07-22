@@ -1,4 +1,5 @@
 const isStorePage = window.location.hostname.startsWith('store.')
+  || window.location.hostname.startsWith('fire.')
   || window.location.pathname.startsWith('/mystore')
   || window.location.pathname.startsWith('/admin');
 

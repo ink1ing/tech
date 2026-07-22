@@ -1,0 +1,53 @@
+:root { color-scheme: dark; }
+body:has(.fire-page) { margin:0; min-width:320px; min-height:100dvh; overflow-x:hidden; background:#111316; color:#f4f5f6; }
+.fire-page { --bg:#111316; --surface:#171a1f; --surface-2:#1d2127; --line:#30353d; --muted:#9299a4; --text:#f4f5f6; --green:#55d6a7; --amber:#f2b84b; --red:#ff7b72; min-height:100dvh; padding:24px clamp(18px,4vw,64px) 20px; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif; letter-spacing:0; }
+.fire-page * { box-sizing:border-box; }
+.fire-header { max-width:1500px; margin:0 auto 24px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
+.fire-brand { display:flex; align-items:center; gap:9px; font-size:15px; font-weight:760; }
+.fire-brand svg { color:var(--green); }
+.fire-status { color:var(--muted); font-size:13px; font-variant-numeric:tabular-nums; }
+.fire-status.reached { color:var(--green); }
+.fire-overview { max-width:1500px; margin:0 auto 12px; display:grid; grid-template-columns:minmax(280px,1fr) auto; align-items:end; gap:32px; }
+.fire-primary-stat { min-width:0; }
+.fire-primary-stat span,.fire-primary-stat small { display:block; color:var(--muted); font-size:13px; }
+.fire-primary-stat strong { display:block; margin:5px 0 7px; font-size:54px; line-height:1; font-weight:680; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.fire-metrics { display:flex; align-items:stretch; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+.fire-metric { min-width:160px; padding:13px 16px; display:grid; grid-template-columns:18px 1fr; gap:3px 9px; background:var(--surface); }
+.fire-metric + .fire-metric { border-left:1px solid var(--line); }
+.fire-metric svg { width:16px; height:16px; color:var(--muted); grid-row:1 / span 2; align-self:center; }
+.fire-metric span { color:var(--muted); font-size:11px; }
+.fire-metric strong { font-size:14px; font-weight:650; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.fire-metric.positive strong { color:var(--green); }
+.fire-metric.negative strong { color:var(--red); }
+.fire-chart-wrap { position:relative; max-width:1500px; margin:0 auto; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.fire-chart { display:block; width:100%; height:auto; aspect-ratio:1200 / 560; touch-action:none; }
+.fire-chart text { fill:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }
+.fire-chart text.target-tick { fill:var(--amber); font-weight:650; }
+.grid-line { stroke:#2b3037; stroke-width:1; vector-effect:non-scaling-stroke; }
+.grid-line.vertical { stroke:#22262c; }
+.target-line { stroke:var(--amber); stroke-width:1.5; stroke-dasharray:7 7; vector-effect:non-scaling-stroke; }
+.asset-area { fill:rgba(85,214,167,.08); }
+.asset-line { fill:none; stroke:var(--green); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke; }
+.chart-cursor line { stroke:#737b86; stroke-width:1; stroke-dasharray:3 5; vector-effect:non-scaling-stroke; }
+.chart-cursor circle { fill:var(--bg); stroke:var(--green); stroke-width:3; vector-effect:non-scaling-stroke; }
+.chart-legend { position:absolute; top:14px; right:4px; display:flex; gap:18px; color:var(--muted); font-size:11px; }
+.chart-legend span { display:flex; align-items:center; gap:7px; }
+.chart-legend i { width:18px; height:2px; display:block; background:var(--green); }
+.chart-legend .legend-target { height:1px; background:var(--amber); }
+.fire-controls { max-width:1500px; margin:22px auto 0; }
+.fire-control-heading { margin-bottom:13px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.fire-control-heading > div { display:flex; align-items:center; gap:8px; }
+.fire-control-heading svg { color:var(--green); }
+.fire-control-heading strong { font-size:14px; }
+.fire-control-heading span { color:var(--muted); font-size:11px; }
+.fire-input-grid { display:grid; grid-template-columns:repeat(8,minmax(118px,1fr)); border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+.fire-field { min-width:0; padding:12px 13px; background:var(--surface); }
+.fire-field + .fire-field { border-left:1px solid var(--line); }
+.fire-field > span { display:block; margin-bottom:7px; color:var(--muted); font-size:11px; }
+.fire-field > div { height:32px; display:flex; align-items:center; gap:5px; border-bottom:1px solid #414852; }
+.fire-field input { width:100%; min-width:0; padding:0; border:0; outline:0; background:transparent; color:var(--text); font-size:15px; font-weight:620; font-variant-numeric:tabular-nums; }
+.fire-field input:focus { color:var(--green); }
+.fire-field small { color:var(--muted); font-size:11px; white-space:nowrap; }
+.fire-footnote { max-width:1500px; margin:16px auto 0; color:#69717c; font-size:11px; text-align:right; }
+@media (max-width:1100px) { .fire-overview { grid-template-columns:1fr; gap:18px; } .fire-metrics { width:100%; } .fire-metric { flex:1; min-width:0; } .fire-input-grid { grid-template-columns:repeat(4,1fr); } .fire-field:nth-child(5) { border-left:0; border-top:1px solid var(--line); } .fire-field:nth-child(n+6) { border-top:1px solid var(--line); } }
+@media (max-width:680px) { .fire-page { padding:18px 14px 16px; } .fire-header { margin-bottom:22px; } .fire-status { max-width:190px; text-align:right; } .fire-primary-stat strong { font-size:38px; } .fire-metrics { display:grid; grid-template-columns:1fr; } .fire-metric { grid-template-columns:20px 1fr auto; align-items:center; } .fire-metric + .fire-metric { border-left:0; border-top:1px solid var(--line); } .fire-metric svg { grid-row:auto; } .fire-metric span { font-size:12px; } .fire-chart text { font-size:22px; } .chart-legend { top:8px; } .fire-control-heading { align-items:flex-end; } .fire-control-heading span { max-width:150px; text-align:right; } .fire-input-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .fire-field { border-top:1px solid var(--line); } .fire-field:nth-child(-n+2) { border-top:0; } .fire-field:nth-child(odd) { border-left:0; } .fire-field:nth-child(even) { border-left:1px solid var(--line); } .fire-footnote { text-align:left; line-height:1.5; } }

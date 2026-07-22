@@ -10,9 +10,22 @@ import ThoughtsPage from './pages/ThoughtsPage';
 import OtherStuffPage from './pages/OtherStuffPage';
 import StorePage from './pages/StorePage';
 import StoreAdminPage from './pages/StoreAdminPage';
+import FirePage from './pages/FirePage';
 
 function App() {
   const isStoreHost = window.location.hostname.startsWith('store.');
+  const isFireHost = window.location.hostname.startsWith('fire.');
+
+  if (isFireHost) {
+    return (
+      <Router>
+        <Routes>
+          <Route path="/" element={<FirePage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    );
+  }
 
   if (isStoreHost) {
     return (
