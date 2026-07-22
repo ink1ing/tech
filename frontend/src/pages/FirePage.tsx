@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, Crosshair, Gauge, TrendingUp, WalletCards } from 'lucide-react';
+import { CalendarDays, Check, Crosshair, Gauge, Save, TrendingUp, WalletCards, X } from 'lucide-react';
 import '../styles/fire.css';
 
 interface ProjectionPoint {
@@ -20,6 +20,12 @@ interface FireInputs {
   assetStep: number;
 }
 
+interface FirePreset extends FireInputs {
+  id: string;
+  name: string;
+  updatedAt: number;
+}
+
 const defaults: FireInputs = {
   initialAssets: 200000,
   monthlyIncome: 20000,
@@ -36,12 +42,29 @@ const chart = { width: 1200, height: 560, left: 84, right: 30, top: 28, bottom: 
 export default function FirePage() {
   const [inputs, setInputs] = useState(defaults);
   const [hoverMonth, setHoverMonth] = useState<number | null>(null);
+  const [presets, setPresets] = useState<FirePreset[]>([]);
+  const [selectedPresetId, setSelectedPresetId] = useState('');
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [presetName, setPresetName] = useState('');
+  const [presetBusy, setPresetBusy] = useState(false);
+  const [presetMessage, setPresetMessage] = useState('');
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     const previousTitle = document.title;
     document.title = 'FIRE · 财富自由规划';
     return () => { document.title = previousTitle; };
+  }, []);
+
+  useEffect(() => {
+    const clientId = getFireClientId();
+    fetch('/api/fire-presets', { headers: { 'x-fire-client-id': clientId } })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.error?.message || '读取预设失败');
+        setPresets(Array.isArray(data.presets) ? data.presets : []);
+      })
+      .catch(() => setPresetMessage('暂时无法读取已保存预设'));
   }, []);
 
   const result = useMemo(() => calculateProjection(inputs), [inputs]);
@@ -67,14 +90,63 @@ export default function FirePage() {
     setHoverMonth(Math.round(ratio * result.durationMonths));
   };
 
+  const restorePreset = (id: string) => {
+    setSelectedPresetId(id);
+    const preset = presets.find((item) => item.id === id);
+    if (!preset) return;
+    setInputs(pickInputs(preset));
+    setHoverMonth(null);
+    setPresetMessage(`已恢复「${preset.name}」`);
+  };
+
+  const savePreset = async () => {
+    const name = presetName.trim();
+    if (!name) { setPresetMessage('请输入预设名称'); return; }
+    setPresetBusy(true);
+    setPresetMessage('');
+    try {
+      const response = await fetch('/api/fire-presets', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-fire-client-id': getFireClientId() },
+        body: JSON.stringify({ name, ...inputs }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error?.message || '保存失败');
+      const saved = data.preset as FirePreset;
+      setPresets((current) => [saved, ...current.filter((item) => item.id !== saved.id)]);
+      setSelectedPresetId(saved.id);
+      setSaveOpen(false);
+      setPresetName('');
+      setPresetMessage(`已保存「${saved.name}」`);
+    } catch (error) {
+      setPresetMessage((error as Error).message);
+    } finally {
+      setPresetBusy(false);
+    }
+  };
+
   return (
     <main className="fire-page">
       <header className="fire-header">
         <div className="fire-brand"><TrendingUp size={19} /><span>FIRE</span></div>
-        <div className={`fire-status ${result.reached ? 'reached' : ''}`}>
-          {result.reached ? `${formatDuration(result.durationMonths)}后达到目标` : `${inputs.forecastYears}年内尚未达到目标`}
+        <div className="fire-header-actions">
+          <label className="fire-preset-select">
+            <span className="sr-only">已保存预设</span>
+            <select value={selectedPresetId} onChange={(event) => restorePreset(event.target.value)} disabled={!presets.length}>
+              <option value="">{presets.length ? '选择预设' : '暂无预设'}</option>
+              {presets.map((preset) => <option key={preset.id} value={preset.id}>{preset.name}</option>)}
+            </select>
+          </label>
+          <button className="fire-save-button" type="button" onClick={() => { setPresetName(presets.find((item) => item.id === selectedPresetId)?.name || ''); setSaveOpen(true); setPresetMessage(''); }}>
+            <Save size={15} /><span>保存</span>
+          </button>
+          <div className={`fire-status ${result.reached ? 'reached' : ''}`}>
+            {result.reached ? `${formatDuration(result.durationMonths)}后达到目标` : `${inputs.forecastYears}年内尚未达到目标`}
+          </div>
         </div>
       </header>
+
+      {presetMessage && <div className="fire-preset-message" role="status">{presetMessage}</div>}
 
       <section className="fire-overview" aria-label="财富自由概览">
         <div className="fire-primary-stat">
@@ -104,7 +176,7 @@ export default function FirePage() {
       <section className="fire-controls" aria-label="规划参数">
         <div className="fire-control-heading">
           <div><Crosshair size={18} /><strong>规划参数</strong></div>
-          <span>所有计算仅保留在当前页面</span>
+          <span>未保存数据仅在当前页</span>
         </div>
         <div className="fire-input-grid">
           <MoneyInput label="初始资产" value={inputs.initialAssets} onChange={(value) => update('initialAssets', value)} />
@@ -119,8 +191,34 @@ export default function FirePage() {
       </section>
 
       <footer className="fire-footnote">按月复利、每月末结余投入；结果为规划参考，不构成投资建议。</footer>
+
+      {saveOpen && <div className="fire-dialog-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSaveOpen(false); }}>
+        <section className="fire-dialog" role="dialog" aria-modal="true" aria-labelledby="fire-save-title">
+          <header><div><Save size={17} /><strong id="fire-save-title">保存当前规划</strong></div><button type="button" aria-label="关闭" onClick={() => setSaveOpen(false)}><X size={17} /></button></header>
+          <label><span>预设名称</span><input autoFocus maxLength={40} value={presetName} onChange={(event) => setPresetName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void savePreset(); }} placeholder="例如：五年计划" /></label>
+          <footer><button type="button" className="fire-dialog-cancel" onClick={() => setSaveOpen(false)}>取消</button><button type="button" className="fire-dialog-confirm" disabled={presetBusy || !presetName.trim()} onClick={() => void savePreset()}><Check size={15} />{presetBusy ? '保存中' : '保存'}</button></footer>
+        </section>
+      </div>}
     </main>
   );
+}
+
+function getFireClientId() {
+  const key = 'fire-client-id';
+  const existing = localStorage.getItem(key);
+  if (existing) return existing;
+  const value = crypto.randomUUID();
+  localStorage.setItem(key, value);
+  return value;
+}
+
+function pickInputs(value: FireInputs): FireInputs {
+  return {
+    initialAssets: Number(value.initialAssets), monthlyIncome: Number(value.monthlyIncome),
+    monthlyExpenses: Number(value.monthlyExpenses), annualReturn: Number(value.annualReturn),
+    target: Number(value.target), forecastYears: Number(value.forecastYears),
+    timeStepYears: Number(value.timeStepYears), assetStep: Number(value.assetStep),
+  };
 }
 
 function Metric({ icon, label, value, tone = '' }: { icon: React.ReactNode; label: string; value: string; tone?: string }) {
