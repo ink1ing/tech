@@ -19,6 +19,7 @@ const CLIENT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{
 
 export async function onRequestGet({ request, env }: PagesContext) {
   if (!isFireHost(request)) return fail('接口不存在', 404, 'NOT_FOUND');
+  await ensurePresetSchema(env.DB);
   const ownerHash = await getOwnerHash(request, env.SESSION_SECRET);
   if (!ownerHash) return fail('浏览器标识无效，请刷新页面后重试', 400, 'INVALID_CLIENT_ID');
   const result = await env.DB.prepare(`SELECT id, name, initial_assets AS initialAssets,
@@ -32,6 +33,7 @@ export async function onRequestGet({ request, env }: PagesContext) {
 
 export async function onRequestPost({ request, env }: PagesContext) {
   if (!isFireHost(request)) return fail('接口不存在', 404, 'NOT_FOUND');
+  await ensurePresetSchema(env.DB);
   const ownerHash = await getOwnerHash(request, env.SESSION_SECRET);
   if (!ownerHash) return fail('浏览器标识无效，请刷新页面后重试', 400, 'INVALID_CLIENT_ID');
   const rate = await consumeRateLimit(request, env, 'fire-preset-save', 30, 60 * 60, 60 * 60);
@@ -84,6 +86,27 @@ async function getOwnerHash(request: Request, secret: string) {
 
 function isFireHost(request: Request) {
   return new URL(request.url).hostname.startsWith('fire.');
+}
+
+async function ensurePresetSchema(db: PagesContext['env']['DB']) {
+  await db.prepare(`CREATE TABLE IF NOT EXISTS fire_presets (
+    id TEXT PRIMARY KEY,
+    owner_hash TEXT NOT NULL,
+    name TEXT NOT NULL,
+    initial_assets REAL NOT NULL,
+    monthly_income REAL NOT NULL,
+    monthly_expenses REAL NOT NULL,
+    annual_return REAL NOT NULL,
+    target REAL NOT NULL,
+    forecast_years REAL NOT NULL,
+    time_step_years REAL NOT NULL,
+    asset_step REAL NOT NULL,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    UNIQUE(owner_hash, name)
+  )`).run();
+  await db.prepare(`CREATE INDEX IF NOT EXISTS idx_fire_presets_owner_updated
+    ON fire_presets(owner_hash, updated_at DESC)`).run();
 }
 
 function validateInputs(input: FirePresetInput) {
