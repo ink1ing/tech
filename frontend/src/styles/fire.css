@@ -1,4 +1,4 @@
-:root { color-scheme: dark; }
+:root:has(.fire-page) { color-scheme: dark; }
 body:has(.fire-page) { margin:0; min-width:320px; min-height:100dvh; overflow-x:hidden; background:#111316; color:#f4f5f6; }
 .fire-page { --bg:#111316; --surface:#171a1f; --surface-2:#1d2127; --line:#30353d; --muted:#9299a4; --text:#f4f5f6; --green:#55d6a7; --amber:#f2b84b; --red:#ff7b72; min-height:100dvh; padding:24px clamp(18px,4vw,64px) 20px; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif; letter-spacing:0; }
 .fire-page * { box-sizing:border-box; }
