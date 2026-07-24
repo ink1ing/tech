@@ -18,13 +18,6 @@ const navigationLinks = [
     description_en: 'Most used by Devs'
   },
   {
-    title: 'Claude最强镜像',
-    title_en: 'Claude Best Mirror',
-    url: 'https://demo.fuclaude.com',
-    description: '需要sessionkey访问',
-    description_en: 'Requires sessionkey access'
-  },
-  {
     title: 'Claude Code',
     title_en: 'Claude Code',
     url: 'https://www.anthropic.com/claude-code',
@@ -114,8 +107,8 @@ export default function NavigationPage() {
             key={index}
             title={link.title}
             titleEn={link.title_en}
-            description={link.description}
-            descriptionEn={link.description_en}
+            description=""
+            descriptionEn=""
             url={link.url}
             language={language}
             isDark={isDark}
